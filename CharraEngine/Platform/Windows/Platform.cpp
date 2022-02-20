@@ -11,7 +11,6 @@
 #include "Core/Events.hpp"
 #include "Core/Logging.hpp"
 
-
 #include <Windows.h>
 #include <windowsx.h>
 #include <wincon.h>
@@ -50,6 +49,13 @@ namespace Charra
 			LARGE_INTEGER timerFrequency;
 
 			ResizeData resizeData;
+
+			HCURSOR cursorNS;
+			HCURSOR cursorWE;
+			HCURSOR cursorNW;
+			HCURSOR cursorNE;
+			HCURSOR cursorDefault;
+			HCURSOR cursorSizeAll;
 		};
 
 		static PlatformData g_platformData;
@@ -139,7 +145,7 @@ namespace Charra
 
 		void fullscreen(int windowIndex, bool fullscreen)
 		{
-
+			// TODO
 		}
 
 		void pollEvents()
@@ -312,6 +318,12 @@ namespace Charra
 			int borderWidth = 4;
 			int menuHeight = 10;
 
+			RECT clientArea = {windowSize.left + borderWidth, windowSize.top + borderWidth + menuHeight, windowSize.right - borderWidth, windowSize.bottom - borderWidth};
+			if(PtInRect(&clientArea, cursor))
+			{
+				return HTCLIENT;
+			}
+
 			RECT leftResize = {windowSize.left, windowSize.top + borderWidth, windowSize.left + borderWidth, windowSize.bottom - borderWidth};
 			if(PtInRect(&leftResize, cursor))
 			{
@@ -367,7 +379,7 @@ namespace Charra
 			}
 
 
-			return HTCLIENT;
+			return HTNOWHERE;
 		}
 
 		LRESULT WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
@@ -384,6 +396,7 @@ namespace Charra
 			{
 				//case WM_NCHITTEST:
 				//	returnVal = customHitTest(window, lParam);
+				//	if(result )
 				//	return returnVal;
 
 				case WM_SIZING:
@@ -516,6 +529,38 @@ namespace Charra
 					g_platformData.eventHandler->signalEvent(EventType::KEY_UP, static_cast<InputCode>(wParam), 0);
 					return 0;
 
+				case WM_SETCURSOR:
+					CHARRA_LOG_INFO(true, "cursor");
+					mouseX = GET_X_LPARAM(lParam);
+					mouseY = GET_Y_LPARAM(lParam);
+					GetCursorPos(&cursorPos);
+					ScreenToClient(window, &cursorPos);
+					hitResult = customHitTest(window, cursorPos.x, cursorPos.y);
+
+					if(hitResult == HTBOTTOM || hitResult == HTTOP)
+					{
+						SetCursor(g_platformData.cursorNS);
+					}
+					else if(hitResult == HTRIGHT || hitResult == HTLEFT)
+					{
+						SetCursor(g_platformData.cursorWE);
+					}
+					else if(hitResult == HTTOPLEFT || hitResult == HTBOTTOMRIGHT)
+					{
+						SetCursor(g_platformData.cursorNW);
+					}
+					else if(hitResult == HTTOPRIGHT || hitResult == HTBOTTOMLEFT)
+					{
+						SetCursor(g_platformData.cursorNE);
+					}
+					else if(hitResult == HTCAPTION)
+					{
+						SetCursor(g_platformData.cursorSizeAll);
+					}
+					else
+					{
+						SetCursor(g_platformData.cursorDefault);
+					}
 			}
 
 			return DefWindowProc(window, message, wParam, lParam);
@@ -537,6 +582,12 @@ namespace Charra
 
 			g_platformData.windowClass = wc;
 
+			g_platformData.cursorNS = LoadCursor(NULL, IDC_SIZENS);
+			g_platformData.cursorWE = LoadCursor(NULL, IDC_SIZEWE);
+			g_platformData.cursorNE = LoadCursor(NULL, IDC_SIZENESW);
+			g_platformData.cursorNW = LoadCursor(NULL, IDC_SIZENWSE);
+			g_platformData.cursorDefault = LoadCursor(NULL, IDC_ARROW);
+			g_platformData.cursorSizeAll = LoadCursor(NULL, IDC_SIZEALL);
 		}
 	}
 }

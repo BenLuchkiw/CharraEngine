@@ -150,7 +150,7 @@ namespace Charra
 		presentInfo.pWaitSemaphores = m_pImpl->renderFinishSempahore.getSemaphore();
 		presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
 		presentInfo.pSwapchains = m_pImpl->mainWindowSwapchain.getSwapchain();
-		const uint32_t imageIndices[] = {m_pImpl->mainWindowSwapchain.getImageIndex()};
+		const uint32_t imageIndices[1] = {m_pImpl->mainWindowSwapchain.getImageIndex()};
 		presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
 		presentInfo.pResults;
 

@@ -75,7 +75,7 @@ namespace Charra
 	{
 		auto func = (PFN_vkDestroyDebugUtilsMessengerEXT)vkGetInstanceProcAddr(instance, "vkDestroyDebugUtilsMessengerEXT");
 		if (func != nullptr) {
-			func(instance, debugMessenger, NULL);
+			func(instance, debugMessenger, pAllocator);
 		}
 	}
 

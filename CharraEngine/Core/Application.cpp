@@ -9,6 +9,7 @@
 
 // TODO this is temporary
 #include "Renderer/Renderer.hpp"
+#include "Vulkan/Pipeline.hpp"
 
 namespace Charra
 {

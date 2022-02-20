@@ -15,7 +15,7 @@ namespace Charra
 
 	Instance::~Instance()
 	{
-		terminateDebugMessenger(m_instance, m_debugMessenger, NULL);
+		//terminateDebugMessenger(m_instance, m_debugMessenger, NULL);
 		vkDestroyInstance(m_instance, NULL);
 	}
 
