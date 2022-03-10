@@ -24,11 +24,12 @@ namespace Charra
 		vkDestroySurfaceKHR(m_instanceRef->getInstance(), m_surface, NULL);
 	}
 
-	void Swapchain::recreateSwapchain(VkExtent2D extent)
+	void Swapchain::recreateSwapchain()
 	{
-		m_pixelExtent = extent;
-		m_resized = true;
 		createSwapchain();
+		destroyImages();
+		createImages();
+		m_resized = false;
 	}
 
 	void Swapchain::onInit()
@@ -118,20 +119,93 @@ namespace Charra
 		vkCreateSwapchainKHR(m_deviceRef->getDevice(), &createInfo, NULL, &m_swapchain);
 	}
 
+	void Swapchain::prepareNextImage(Semaphore* waitSemaphore)
+	{
+		if(m_resized)
+		{
+			recreateSwapchain();
+			destroyImages();
+			createImages();
+		}
+		if(m_framebufferInvalid)
+		{
+			createImages();
+		}
+		vkAcquireNextImageKHR(m_deviceRef->getDevice(), m_swapchain, UINT32_MAX, waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex);
+	}
+
 	bool Swapchain::resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData)
 	{
-		Vec2 size;
+		VkExtent2D size;
 		size.width = UPPER_UINT64(data);
 		size.height = LOWER_UINT64(data);
 
 		Swapchain* swapchainRef = static_cast<Swapchain*>(privateData);
 
-		VkExtent2D currentExtent = swapchainRef->getPixelExtent();
-		if(currentExtent.width != size.width || currentExtent.height != size.height)
-		{
-			swapchainRef->recreateSwapchain(VkExtent2D(size.width, size.height));
-		}
+		swapchainRef->setPixelExtent(size.width, size.height);
+		swapchainRef->invalidateSwapchain();
 		
 		return true;
+	}
+
+	void Swapchain::createImages()
+	{
+		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchain, &m_imageCount, NULL);
+		CHARRA_LOG_ERROR(m_imageCount == 0, "No swapchain images were available");
+		m_images.resize(m_imageCount);
+		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchain, &m_imageCount, m_images.data());
+		
+		VkImageViewCreateInfo createInfo{};
+		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
+		createInfo.pNext;
+		createInfo.flags;
+		createInfo.viewType = VK_IMAGE_VIEW_TYPE_2D;
+		createInfo.format = m_surfaceFormat.format;
+		createInfo.components.r = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.g = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.b = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.components.a = VK_COMPONENT_SWIZZLE_IDENTITY;
+		createInfo.subresourceRange.aspectMask = VK_IMAGE_ASPECT_COLOR_BIT;
+		createInfo.subresourceRange.baseArrayLayer = 0;
+		createInfo.subresourceRange.baseMipLevel = 0;
+		createInfo.subresourceRange.layerCount = 1;
+		createInfo.subresourceRange.levelCount = 1;
+
+		m_imageViews.resize(m_imageCount);
+		for (int i = 0; i < m_imageCount; i++)
+		{
+			createInfo.image = m_images[i];
+			CHARRA_LOG_ERROR(vkCreateImageView(m_deviceRef->getDevice(), &createInfo, NULL, &m_imageViews[i]) != VK_SUCCESS, "Vulkan failed to create image view");
+		}
+
+		m_framebuffers.resize(m_imageCount);
+
+		VkFramebufferCreateInfo framebufferCreateInfo{};
+		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
+		framebufferCreateInfo.pNext;
+		framebufferCreateInfo.flags;
+		framebufferCreateInfo.renderPass = m_renderpassRef->getRenderPass();
+		framebufferCreateInfo.attachmentCount = 1;
+		framebufferCreateInfo.pAttachments;
+		framebufferCreateInfo.width = m_pixelExtent.width;
+		framebufferCreateInfo.height = m_pixelExtent.height;
+		framebufferCreateInfo.layers = 1;
+
+		for (int i = 0; i < m_imageCount; i++)
+		{
+			const VkImageView attachment[] = { m_imageViews.at(i) };
+			framebufferCreateInfo.pAttachments = attachment;
+			CHARRA_LOG_ERROR(VK_SUCCESS != vkCreateFramebuffer(m_deviceRef->getDevice(), &framebufferCreateInfo, NULL, &m_framebuffers[i]), "Vulkan could not make a framebuffer");
+		}
+
+	}
+
+	void Swapchain::destroyImages()
+	{
+		for (int i = 0; i < m_imageCount; i++)
+		{
+			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_framebuffers[i], NULL);
+			vkDestroyImageView(m_deviceRef->getDevice(), m_imageViews[i], NULL);
+		}
 	}
 };

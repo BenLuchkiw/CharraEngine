@@ -23,5 +23,5 @@ include_directories("Libs\\vulkan\\Include")
 include_directories("CharraEngine")
 # TODO platform stuff
 
-#add_definitions(-DVULKAN_VALIDATION_LAYERS)
+add_definitions(-DVULKAN_VALIDATION_LAYERS)
 add_definitions(-DROOT_DIR="${CMAKE_CURRENT_LIST_DIR}")

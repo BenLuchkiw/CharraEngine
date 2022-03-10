@@ -50,10 +50,10 @@ namespace Charra
 			deltaTime = timer.getTimeDiff(timePerFrame);
 
 			std::ostringstream stream;
-			stream.precision(4);
+			stream.precision(2);
 			stream << "Delta time: " << deltaTime << " fps: " << (1000.0f / deltaTime) << "\n";
 
-			//CHARRA_LOG_INFO(true, stream.str());
+			CHARRA_LOG_INFO(true, stream.str());
 		}
 	}
 };

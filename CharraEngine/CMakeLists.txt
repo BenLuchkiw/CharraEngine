@@ -11,15 +11,21 @@ ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.cpp
+${CMAKE_CURRENT_LIST_DIR}/Renderer/GUI.hpp
+${CMAKE_CURRENT_LIST_DIR}/Renderer/GUI.cpp
 
-${CMAKE_CURRENT_LIST_DIR}/Math/MathTypes.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Buffer.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Allocator.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Allocator.cpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/DeviceAllocator.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/DeviceAllocator.cpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/HostAllocator.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/HostAllocator.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/CommandBuffers.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/CommandBuffers.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Device.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Device.cpp
-${CMAKE_CURRENT_LIST_DIR}/Vulkan/Images.hpp
-${CMAKE_CURRENT_LIST_DIR}/Vulkan/Images.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Instance.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Instance.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Pipeline.hpp
@@ -34,6 +40,10 @@ ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Syncronization.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Syncronization.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/ValidationLayers.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/ValidationLayers.cpp
+
+${CMAKE_CURRENT_LIST_DIR}/Math/MathTypes.hpp
+${CMAKE_CURRENT_LIST_DIR}/Math/MathTypes.cpp
+${CMAKE_CURRENT_LIST_DIR}/Math/RendererTypes.hpp
 
 PARENT_SCOPE)
 

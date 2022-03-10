@@ -20,10 +20,11 @@ namespace Charra
 
 		// If the index equals uint32_MAX not queue is available
 		uint32_t getGraphicsQueueIndex() { return m_graphicsQueueIndex; }
-		// If the index equals uint32_MAX not queue is available
-		uint32_t getComputeQueueIndex() { return m_computeQueueIndex; }
+		uint32_t getTransferQueueIndex() { return m_transferQueueIndex; }
+		uint32_t getComputeQueueIndex()  { return m_computeQueueIndex; }
 
 		VkQueue getGraphicsQueue() { return m_graphicsQueue; }
+		VkQueue getTransferQueue() { return m_transferQueue; }
 		VkQueue getComputeQueue() { return m_computeQueue; }
 
 		std::vector<VkQueueFamilyProperties>* getQueueFamilyProperties() { return &m_queueFamilyProperties; }

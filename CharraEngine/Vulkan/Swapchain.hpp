@@ -4,19 +4,23 @@
 
 #include "Device.hpp"
 #include "Instance.hpp"
+#include "Renderpass.hpp"
 #include "Syncronization.hpp"
 
 #include "Core/Events.hpp"
 
 namespace Charra
 {
+	class Renderpass;
 	class Swapchain
 	{
 	public:
 		Swapchain(Device* deviceRef, Instance* instanceRef);
 		~Swapchain();
 
-		void recreateSwapchain(VkExtent2D extent);
+		void passRenderpass(Renderpass* renderpassRef) { m_renderpassRef = renderpassRef; }
+
+		void recreateSwapchain();
 
 		// Pixel dimensions
 		inline VkExtent2D getPixelExtent() { return m_pixelExtent; }
@@ -26,24 +30,26 @@ namespace Charra
 
 		inline VkFormat getSurfaceFormat() { return m_surfaceFormat.format; }
 
-		inline VkSwapchainKHR* getSwapchain() { return &m_swapchain; }
-		inline void prepareNextImage(Semaphore* waitSemaphore) { vkAcquireNextImageKHR(m_deviceRef->getDevice(), m_swapchain, UINT32_MAX, *waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex); }
+		inline VkSwapchainKHR getSwapchain() { return m_swapchain; }
+		void prepareNextImage(Semaphore* waitSemaphore);
 		inline uint32_t getImageIndex() { return m_imageIndex; }
 
 		static bool resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData);
 
-		// This function will automatically change internal state,
-		// this means that a result of true must immediately be dealt with
-		inline bool shouldResize() { return m_resized; m_resized = false; }
+		inline void invalidateSwapchain() { m_resized = true; }
+
+		inline VkFramebuffer getFramebuffer() { return m_framebuffers[m_imageIndex]; }
 	private: // Methods
 
 		void onInit();
 		void createSwapchain();
-
+		void destroyImages();
+		void createImages();
 
 	private: // Members
 		Device* m_deviceRef;
 		Instance* m_instanceRef;
+		Renderpass* m_renderpassRef;
 
 		VkSurfaceKHR m_surface;
 		VkSurfaceCapabilitiesKHR m_surfaceCapabilites;
@@ -57,5 +63,10 @@ namespace Charra
 		uint32_t m_imageIndex = 0;
 
 		bool m_resized = false;
+		bool m_framebufferInvalid = true;
+
+		std::vector<VkImage> m_images;
+		std::vector<VkImageView> m_imageViews;
+		std::vector<VkFramebuffer> m_framebuffers;
 	};
 }

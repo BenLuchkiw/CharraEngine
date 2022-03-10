@@ -7,23 +7,25 @@
 #include "Shader.hpp"
 
 #include <string>
+#include <array>
 
 namespace Charra
 {
 	class GraphicsPipeline
 	{
 	public:
-		GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename);
+		GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
+		const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 		~GraphicsPipeline();
 
 		//void init(Window* windowRef, const std::string& computeFileName);
 		void init();
 		void destroy();
 
-		VkPipeline* getPipeline() { return &m_pipeline; }
+		VkPipeline getPipeline() { return m_pipeline; }
 
 	private: // Methods
-		void createGraphicsPipeline();
+		void createGraphicsPipeline(const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 		//void createComputePipeline();
 	private: // Members
 		Device* m_deviceRef;

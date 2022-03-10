@@ -136,11 +136,8 @@ namespace Charra
 		static void moveWindow(uint32_t windowIndex, Vec2 position, Vec2 size)
 		{
 			//MoveWindow(g_platformData.windows[windowIndex], position.x, position.y, size.width, size.height, false);
-			HRESULT result = SetWindowPos(g_platformData.windows[windowIndex], 0, position.x, position.y, size.width, size.height, 0);
-			//result;
-			DWORD error = GetLastError();
-			error;
-			CHARRA_LOG_INFO(error != 0, std::to_string(error));
+			HRESULT result = SetWindowPos(g_platformData.windows[windowIndex], 0, position.x, position.y, size.width, size.height, SWP_DEFERERASE | SWP_NOZORDER | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING);
+			
 		}
 
 		void fullscreen(int windowIndex, bool fullscreen)
@@ -530,7 +527,6 @@ namespace Charra
 					return 0;
 
 				case WM_SETCURSOR:
-					CHARRA_LOG_INFO(true, "cursor");
 					mouseX = GET_X_LPARAM(lParam);
 					mouseY = GET_Y_LPARAM(lParam);
 					GetCursorPos(&cursorPos);

@@ -1,5 +1,7 @@
 #include "Renderer.hpp"
 
+#include "vulkan/Allocator/Allocator.hpp"
+#include "vulkan/Allocator/Buffer.hpp"
 #include "Vulkan/CommandBuffers.hpp"
 #include "Vulkan/Device.hpp"
 #include "Vulkan/Instance.hpp"
@@ -9,10 +11,10 @@
 #include "Vulkan/Swapchain.hpp"
 #include "Vulkan/Syncronization.hpp"
 #include "Vulkan/Renderpass.hpp"
-#include "Vulkan/Images.hpp"
 
 #include "Platform/Platform.hpp"
 #include "Core/Logging.hpp"
+#include "Math/RendererTypes.hpp"
 
 #include "vulkan/vulkan.h"
 
@@ -20,8 +22,14 @@
 
 namespace Charra
 {
-	struct RendererImplData // To avoid pimpl, maybe faster
+	struct RendererImplData
 	{
+		VkVertexInputBindingDescription vertexBindingAttributes{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX};
+		std::vector<VkVertexInputAttributeDescription> attributeDescription = {
+			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)},
+			{1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, colour)}
+		};
+
 		Instance instance;
 		Device device;
 
@@ -29,9 +37,9 @@ namespace Charra
 		std::string windowName;
 		Swapchain mainWindowSwapchain;
 		Renderpass renderpass;
-		Images mainWindowImages;
 		Semaphore mainWindowImageWaitSemaphore;
 
+		Semaphore transferFinishedSemaphore;
 		Semaphore renderFinishSempahore;
 		Fence renderFinishedFence;
 
@@ -43,6 +51,12 @@ namespace Charra
 
 		Events* eventHandlerRef;
 
+		Allocator allocator;
+		std::vector<Vertex> vertices;
+		Buffer vertexStagingBuffer{};
+		Buffer vertexDeviceBuffer{};
+		bool shouldTransfer = false;
+
 		RendererImplData(Vec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
 		: instance(),
 		device(&instance),
@@ -50,15 +64,16 @@ namespace Charra
 		windowName(windowName),
 		mainWindowSwapchain(&device, &instance),
 		renderpass(&device, mainWindowSwapchain.getSurfaceFormat()),
-		mainWindowImages(&device, &mainWindowSwapchain, &renderpass),
 		mainWindowImageWaitSemaphore(&device),
+		transferFinishedSemaphore(&device),
 		renderFinishSempahore(&device),
 		renderFinishedFence(&device),
-		commandBuffers(&device, 2),
-		pipeline(&device, &renderpass, "SimpleVertex.spv", "SimpleFragment.spv"),
-		eventHandlerRef(eventHandlerRef)
+		commandBuffers(&device, 2, CommandBufferType::GRAPHICS),
+		pipeline(&device, &renderpass, "SimpleVertex.spv", "SimpleFragment.spv", vertexBindingAttributes, attributeDescription),
+		eventHandlerRef(eventHandlerRef),
+		allocator(&device)
 		{
-
+			mainWindowSwapchain.passRenderpass(&renderpass);
 		}
 	};
 
@@ -71,26 +86,85 @@ namespace Charra
 		// TODO mulitple windows will need this to be better
 
 		m_pImpl->eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT, m_pImpl->mainWindowSwapchain.resizeCallback, &m_pImpl->mainWindowSwapchain);
+		
+
+		Vertex point;
+		point.position.x = 0.0f;
+		point.position.y =-0.5f;
+		point.position.z = 0.5f;
+		point.colour.r = 1.0f;
+		point.colour.g = 0.0f;
+		point.colour.b = 0.0f;
+		point.colour.a = 1.0f;
+		m_pImpl->vertices.push_back(point);
+
+		point.position.x = 0.5f;
+		point.position.y = 0.5f;
+		point.colour.g = 0.0f;
+		point.colour.b = 1.0f;
+		m_pImpl->vertices.push_back(point);
+
+		point.position.x =-0.5f;
+		point.position.y = 0.5f;
+		point.colour.r = 0.0f;
+		point.colour.g = 1.0f;
+		m_pImpl->vertices.push_back(point);
+
+		uint32_t size = sizeof(Vertex) * m_pImpl->vertices.size();
+
+		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::CPU);
+
+		memcpy(m_pImpl->vertexStagingBuffer.data, m_pImpl->vertices.data(), size);
+
+		BufferTypeFlags flags = m_pImpl->allocator.getBufferTypes();
+		if(flags & BufferType::GPU)
+		{
+			m_pImpl->shouldTransfer = true;
+			m_pImpl->vertexDeviceBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::GPU);
+			m_pImpl->allocator.applyForTransfer(&m_pImpl->vertexStagingBuffer, &m_pImpl->vertexDeviceBuffer);
+		}
 	}
 
 	Renderer::~Renderer()
 	{
-
+		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexDeviceBuffer);
+		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexStagingBuffer);
 	}
 
 	void Renderer::draw()
 	{
-		if(m_pImpl->mainWindowSwapchain.shouldResize())
+		std::vector<VkSemaphore> renderWaitSemaphores;
+		std::vector<VkPipelineStageFlags> waitStages;
+
+		// Transfer vertices if required
+		if(m_pImpl->shouldTransfer)
 		{
-			m_pImpl->mainWindowImages.recreate();
+			m_pImpl->shouldTransfer = false;
+
+			renderWaitSemaphores.push_back(m_pImpl->transferFinishedSemaphore.getSemaphore());
+			waitStages.push_back(VK_PIPELINE_STAGE_TRANSFER_BIT);
+
+			VkSubmitInfo transferSubmitInfo{};
+			transferSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+			transferSubmitInfo.pNext;
+			transferSubmitInfo.waitSemaphoreCount;
+			transferSubmitInfo.pWaitSemaphores;
+			transferSubmitInfo.commandBufferCount = 1;
+			VkCommandBuffer command[] = {m_pImpl->allocator.getTransferBuffer()};
+			transferSubmitInfo.pCommandBuffers = command;
+			transferSubmitInfo.signalSemaphoreCount = 1;
+			transferSubmitInfo.pSignalSemaphores = &renderWaitSemaphores.back();
+
+			CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
+
+		m_pImpl->mainWindowSwapchain.prepareNextImage(&m_pImpl->mainWindowImageWaitSemaphore);
 		m_pImpl->commandBuffers.resetCommandBuffer(m_pImpl->commandBufferIndex);
 		m_pImpl->commandBuffers.beginRecording(m_pImpl->commandBufferIndex);
 
 		// I will record the main window now
-		m_pImpl->mainWindowSwapchain.prepareNextImage(&m_pImpl->mainWindowImageWaitSemaphore);
 		m_pImpl->commandBuffers.beginRenderpass(m_pImpl->renderpass.getRenderPass(),
-												&m_pImpl->mainWindowImages.getFramebuffers()->at(m_pImpl->mainWindowSwapchain.getImageIndex()), 
+												m_pImpl->mainWindowSwapchain.getFramebuffer(), 
 												m_pImpl->pipeline.getPipeline(),
 												m_pImpl->mainWindowSwapchain.getPixelExtent(),
 												m_pImpl->commandBufferIndex);
@@ -108,52 +182,65 @@ namespace Charra
 		viewportCreateInfo.minDepth = 0.0f;
 		viewportCreateInfo.maxDepth = 1.0f;
 
-		vkCmdSetViewport(*m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &viewportCreateInfo);
-		vkCmdSetScissor(*m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &scissor);
+		vkCmdSetViewport(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &viewportCreateInfo);
+		vkCmdSetScissor(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &scissor);
 
-		m_pImpl->commandBuffers.draw(m_pImpl->commandBufferIndex);
-		
+		if(m_pImpl->vertexDeviceBuffer.size != 0)
+		{
+			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexDeviceBuffer.buffer, &m_pImpl->vertexDeviceBuffer.offset);
+		}
+		else 
+		{
+			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexStagingBuffer.buffer, &m_pImpl->vertexStagingBuffer.offset);
+		}
+
+		uint32_t size = m_pImpl->vertices.size() * sizeof(Vertex);
+		vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
+		 
 		m_pImpl->commandBuffers.endRenderpass(m_pImpl->commandBufferIndex);
 
 		// TODO gui stuff
 		// I will record any gui windows now
 
 
-
 		m_pImpl->commandBuffers.endRecording(m_pImpl->commandBufferIndex);
 
 		// Submit command buffers
-		// TODO multiple windows will need a long array
-		std::array<VkPipelineStageFlags, 1> waitStages = { VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT };
+		renderWaitSemaphores.push_back(m_pImpl->mainWindowImageWaitSemaphore.getSemaphore());
+		waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.pNext;
-		submitInfo.waitSemaphoreCount = 1; // TODO multiple windows will need multiple semaphores
-		submitInfo.pWaitSemaphores = m_pImpl->mainWindowImageWaitSemaphore.getSemaphore();
+		submitInfo.waitSemaphoreCount = renderWaitSemaphores.size();
+		submitInfo.pWaitSemaphores = renderWaitSemaphores.data();
 		submitInfo.pWaitDstStageMask = waitStages.data();
 		submitInfo.commandBufferCount = 1;
-		submitInfo.pCommandBuffers = m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex);
+		VkCommandBuffer commandBuffers[] = {m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex)};
+		submitInfo.pCommandBuffers = commandBuffers;
 		submitInfo.signalSemaphoreCount = 1;
-		submitInfo.pSignalSemaphores = m_pImpl->renderFinishSempahore.getSemaphore();
+		VkSemaphore signalSemaphores[] = {m_pImpl->renderFinishSempahore.getSemaphore()};
+		submitInfo.pSignalSemaphores = signalSemaphores;
 
 		// 1/10th of a second
-		vkWaitForFences(m_pImpl->device.getDevice(), 1, m_pImpl->renderFinishedFence.getFence(), true, 100000000);
+		VkFence fences[] = {m_pImpl->renderFinishedFence.getFence()};
+		vkWaitForFences(m_pImpl->device.getDevice(), 1, fences, true, 100000000);
 		m_pImpl->renderFinishedFence.reset();
 		
-		CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getGraphicsQueue(), 1, &submitInfo, *m_pImpl->renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
+		CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getGraphicsQueue(), 1, &submitInfo, m_pImpl->renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
 
 		VkPresentInfoKHR presentInfo{};
 		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 		presentInfo.pNext;
 		presentInfo.waitSemaphoreCount = 1;
-		presentInfo.pWaitSemaphores = m_pImpl->renderFinishSempahore.getSemaphore();
+		VkSemaphore presentSemaphores[] = {m_pImpl->renderFinishSempahore.getSemaphore()};
+		presentInfo.pWaitSemaphores = presentSemaphores;
 		presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
-		presentInfo.pSwapchains = m_pImpl->mainWindowSwapchain.getSwapchain();
+		VkSwapchainKHR swapchains[1] = {m_pImpl->mainWindowSwapchain.getSwapchain()};
+		presentInfo.pSwapchains = swapchains;
 		const uint32_t imageIndices[1] = {m_pImpl->mainWindowSwapchain.getImageIndex()};
 		presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
 		presentInfo.pResults;
-
 
 		// Check this result for resizing
 		VkResult result = vkQueuePresentKHR(m_pImpl->device.getGraphicsQueue(), &presentInfo);

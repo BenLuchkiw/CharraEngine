@@ -15,7 +15,7 @@ namespace Charra
 
 		void createRenderpass();
 		
-		VkRenderPass* getRenderPass() { return &m_renderPass; }
+		VkRenderPass getRenderPass() { return m_renderPass; }
 
 	private: // Methods
 

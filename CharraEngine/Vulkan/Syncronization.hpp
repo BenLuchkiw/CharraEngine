@@ -16,7 +16,7 @@ namespace Charra
 		Semaphore(Semaphore&&) noexcept {}
 		Semaphore& operator=(Semaphore&&) noexcept {}
 
-		inline VkSemaphore* getSemaphore() { return &m_semaphore; }
+		inline VkSemaphore getSemaphore() { return m_semaphore; }
 		
 	private: // Methods
 
@@ -35,7 +35,7 @@ namespace Charra
 		Fence(Fence&&) noexcept {}
 		Fence& operator=(Fence&&) noexcept {}
 
-		inline VkFence* getFence() { return &m_fence; }
+		inline VkFence getFence() { return m_fence; }
 		inline void reset() { vkResetFences(m_deviceRef->getDevice(), 1, &m_fence); }
 
 	private: // Methods

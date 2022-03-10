@@ -9,76 +9,102 @@ namespace Charra
 {
 	union fVec2
 	{
-		float elements[2];
 		struct
 		{
-			union 
-			{
-				float x, width;
-			};
-			union
-			{
-				float y, height;
-			};
+			float x, y;
 		};
+		struct
+		{
+			float offset, size;
+		};
+		struct 
+		{
+			float width, height;
+		};
+		float elements[2];
 	};
-
+	
 	union Vec2
 	{
-		uint32_t elements[2];
 		struct
 		{
-			union 
-			{
-				uint32_t x, width;
-			};
-			union
-			{
-				uint32_t y, height;
-			};
+			uint32_t x, y;
 		};
+		struct
+		{
+			uint32_t offset, size;
+		};
+		struct
+		{
+			uint32_t width, height;
+		};
+		uint32_t elements[2];
 	};
 
 	union fVec3
 	{
-		float elements[3];
 		struct 
 		{
-			union 
-			{
-				float x, r;
-			};
-			union 
-			{
-				float y, g;
-			};
-			union
-			{
-				float z, b;
-			};
-			
+			float x, y, z;
+		};
+		struct
+		{
+			float r, g, b;
+		};
+		struct
+		{
+			float width, height, length;
+		};
+		float elements[3];
+	};
+	
+	union Vec3
+	{
+		struct
+		{
+			uint32_t x, y, z;
+		};
+		struct
+		{
+			uint32_t r, g, b;
+		};
+		struct
+		{
+			uint32_t width, height, length;
+		};
+		uint32_t elements[3];
+	};
+
+	union fVec4
+	{
+		struct 
+		{
+			float x, y, z, w;
+		};
+		struct 
+		{
+			float r, g, b, a;
+		};
+		struct
+		{
+			float elements[4];
 		};
 		
 	};
-
-	union Vec3
+	
+	union Vec4
 	{
-		uint32_t elements[3];
 		struct 
 		{
-			union 
-			{
-				uint32_t x, r;
-			};
-			union 
-			{
-				uint32_t y, g;
-			};
-			union
-			{
-				uint32_t z, b;
-			};
-			
+			uint32_t x, y, z, w;
+		};
+		struct
+		{
+			uint32_t r, g, b, a;
+		};
+		struct
+		{
+			uint32_t elements[4];
 		};
 		
 	};

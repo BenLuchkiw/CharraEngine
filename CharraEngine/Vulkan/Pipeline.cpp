@@ -4,7 +4,8 @@
 
 namespace Charra
 {
-	GraphicsPipeline::GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename)
+	GraphicsPipeline::GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
+		const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
 		: m_deviceRef(deviceRef),
 		m_renderpassRef(renderpassRef),
 		m_vertexShader(deviceRef, vertexFilename, ShaderType::CHARRA_SHADER_TYPE_VERTEX),
@@ -12,7 +13,7 @@ namespace Charra
 		m_pipelineLayout(VK_NULL_HANDLE),
 		m_pipeline(VK_NULL_HANDLE)
 	{
-		createGraphicsPipeline();
+		createGraphicsPipeline(bindingDescription, attributeDescriptions);
 	}
 
 	GraphicsPipeline::~GraphicsPipeline()
@@ -21,7 +22,7 @@ namespace Charra
 		vkDestroyPipelineLayout(m_deviceRef->getDevice(), m_pipelineLayout, NULL);
 	}
 
-	void GraphicsPipeline::createGraphicsPipeline()
+	void GraphicsPipeline::createGraphicsPipeline(const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
 	{
 		VkPipelineShaderStageCreateInfo vertexShaderStage{};
 		vertexShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
@@ -47,10 +48,10 @@ namespace Charra
 		vertexCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_VERTEX_INPUT_STATE_CREATE_INFO;
 		vertexCreateInfo.pNext = NULL;
 		vertexCreateInfo.flags = NULL;
-		vertexCreateInfo.vertexBindingDescriptionCount = NULL;
-		vertexCreateInfo.pVertexBindingDescriptions = NULL;
-		vertexCreateInfo.vertexAttributeDescriptionCount = NULL;
-		vertexCreateInfo.pVertexAttributeDescriptions = NULL;
+		vertexCreateInfo.vertexBindingDescriptionCount = 1;
+		vertexCreateInfo.pVertexBindingDescriptions = &bindingDescription;
+		vertexCreateInfo.vertexAttributeDescriptionCount = attributeDescriptions.size();
+		vertexCreateInfo.pVertexAttributeDescriptions = attributeDescriptions.data();
 
 		VkPipelineInputAssemblyStateCreateInfo inputAssemblyCreateInfo{};
 		inputAssemblyCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_INPUT_ASSEMBLY_STATE_CREATE_INFO;
@@ -181,53 +182,11 @@ namespace Charra
 		pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
 		pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
 		pipelineCreateInfo.layout = m_pipelineLayout;
-		pipelineCreateInfo.renderPass = *m_renderpassRef->getRenderPass();
+		pipelineCreateInfo.renderPass = m_renderpassRef->getRenderPass();
 		pipelineCreateInfo.subpass = 0;
 		pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineCreateInfo.basePipelineIndex = -1;
 
 		CHARRA_LOG_ERROR(vkCreateGraphicsPipelines(m_deviceRef->getDevice(), NULL, 1, &pipelineCreateInfo, NULL, &m_pipeline), "Vulkan failed to create a pipeline");
 	}
-	/*
-	void Pipeline::createComputePipeline()
-	{
-		VkPipelineShaderStageCreateInfo computeShaderStage{};
-		computeShaderStage.sType = VK_STRUCTURE_TYPE_PIPELINE_SHADER_STAGE_CREATE_INFO;
-		computeShaderStage.pNext = NULL;
-		computeShaderStage.flags = 0;
-		computeShaderStage.stage = VK_SHADER_STAGE_COMPUTE_BIT;
-		computeShaderStage.module = *m_computeShader.getShaderModule();
-		computeShaderStage.pName = "main";
-		computeShaderStage.pSpecializationInfo = NULL;
-
-		VkPipelineLayoutCreateInfo pipelineLayoutCreateInfo{};
-		pipelineLayoutCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_LAYOUT_CREATE_INFO;
-		pipelineLayoutCreateInfo.pNext = NULL;
-		pipelineLayoutCreateInfo.flags = NULL;
-		pipelineLayoutCreateInfo.setLayoutCount = 0;
-		pipelineLayoutCreateInfo.pSetLayouts = nullptr;
-		pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
-		pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
-
-		FE_LOG_FATAL(vkCreatePipelineLayout(vulkanData.device.getDevice(), &pipelineLayoutCreateInfo, NULL, &m_pipelineLayout) != VK_SUCCESS, "Vulkan failed to create a pipeline layout");
-
-		VkPipelineCacheCreateInfo pipelineCacheCreateInfo{};
-		pipelineCacheCreateInfo.sType = VK_STRUCTURE_TYPE_PIPELINE_CACHE_CREATE_INFO;
-		pipelineCacheCreateInfo.pNext;
-		pipelineCacheCreateInfo.flags;
-		pipelineCacheCreateInfo.initialDataSize;
-		pipelineCacheCreateInfo.pInitialData;
-		vkCreatePipelineCache(vulkanData.device.getDevice(), &pipelineCacheCreateInfo, NULL, m)
-
-		VkComputePipelineCreateInfo computePipelineCreateInfo{};
-		computePipelineCreateInfo.sType = VK_STRUCTURE_TYPE_COMPUTE_PIPELINE_CREATE_INFO;
-		computePipelineCreateInfo.pNext;
-		computePipelineCreateInfo.flags;
-		computePipelineCreateInfo.stage = computeShaderStage;
-		computePipelineCreateInfo.layout = m_pipelineLayout;
-		computePipelineCreateInfo.basePipelineHandle;
-		computePipelineCreateInfo.basePipelineIndex;
-
-		FE_LOG_FATAL(vkCreateComputePipelines(vulkanData.device.getDevice(), ))
-	}*/
 }

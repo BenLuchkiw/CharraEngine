@@ -72,6 +72,18 @@ namespace Charra
 		// This has to be declared outside of the inner scope otherwise it may throw errors
 		const float priority = 1.0f;
 
+		if(m_transferQueueIndex != m_graphicsQueueIndex)
+		{
+			VkDeviceQueueCreateInfo createInfo{};
+			createInfo.sType = VK_STRUCTURE_TYPE_DEVICE_QUEUE_CREATE_INFO;
+			createInfo.pNext;
+			createInfo.flags;
+			createInfo.queueCount = 1;
+			createInfo.queueFamilyIndex = m_transferQueueIndex;
+			createInfo.pQueuePriorities = &priority;
+			deviceQueueCreateInfos.push_back(createInfo);
+		}
+
 		if (m_computeQueueIndex == m_graphicsQueueIndex)
 		{
 			if (m_queueFamilyProperties.at(m_graphicsQueueIndex).queueCount == 1)
@@ -83,7 +95,7 @@ namespace Charra
 				createInfo.queueCount = 1;
 				createInfo.queueFamilyIndex = m_graphicsQueueIndex;
 				createInfo.pQueuePriorities = &priority;
-				deviceQueueCreateInfos.emplace_back(createInfo);
+				deviceQueueCreateInfos.push_back(createInfo);
 			}
 			else
 			{
@@ -94,7 +106,7 @@ namespace Charra
 				createInfo.queueCount = 2;
 				createInfo.queueFamilyIndex = m_graphicsQueueIndex;
 				createInfo.pQueuePriorities = &priority;
-				deviceQueueCreateInfos.emplace_back(createInfo);
+				deviceQueueCreateInfos.push_back(createInfo);
 			}
 		}
 		else 
@@ -107,11 +119,11 @@ namespace Charra
 			createInfo.queueFamilyIndex = m_graphicsQueueIndex;
 			createInfo.pQueuePriorities = &priority;
 
-			deviceQueueCreateInfos.emplace_back(createInfo); // Graphics queue
+			deviceQueueCreateInfos.push_back(createInfo); // Graphics queue
 
 			createInfo.queueFamilyIndex = m_computeQueueIndex;
 
-			deviceQueueCreateInfos.emplace_back(createInfo); // Compute queue
+			deviceQueueCreateInfos.push_back(createInfo); // Compute queue
 		}
 
 		std::vector<const char*> extensions;
@@ -172,10 +184,9 @@ namespace Charra
 		}
 
 		CHARRA_LOG_ERROR(bestGraphicsQueueFamily == UINT32_MAX, "Vulkan could not find a suitable graphics queue");
-		CHARRA_LOG_ERROR(bestTransferBitCount == UINT32_MAX, "Vulkan could not find a suitable transfer queue");
 		CHARRA_LOG_WARNING(bestComputeQueuefamily == UINT32_MAX, "Vulkan could not find a suitable compute queue");
 		m_graphicsQueueIndex = bestGraphicsQueueFamily;
-		m_transferQueueIndex = bestTransferQueueFamily;
+		m_transferQueueIndex = (bestTransferQueueFamily == UINT32_MAX) ? m_graphicsQueueIndex : bestTransferQueueFamily;
 		m_computeQueueIndex = bestComputeQueuefamily;
 	}
 
@@ -183,6 +194,15 @@ namespace Charra
 	{
 		// The graphics queue will be given priority
 		vkGetDeviceQueue(m_device, m_graphicsQueueIndex, 0, &m_graphicsQueue);
+
+		if(m_transferQueueIndex != m_graphicsQueueIndex)
+		{
+			vkGetDeviceQueue(m_device, m_transferQueueIndex, 0, &m_transferQueue);
+		}
+		else
+		{ // Transfer queue is same as graphics queue
+			m_transferQueue = m_graphicsQueue;
+		}
 
 		// The compute queue will be different from graphics queue if possible
 		if (m_graphicsQueueIndex != m_computeQueueIndex) // If compute is a different family
