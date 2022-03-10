@@ -33,7 +33,7 @@ namespace Charra
 		Instance instance;
 		Device device;
 
-		Vec2 windowSize;
+		iVec2 windowSize;
 		std::string windowName;
 		Swapchain mainWindowSwapchain;
 		Renderpass renderpass;
@@ -57,7 +57,7 @@ namespace Charra
 		Buffer vertexDeviceBuffer{};
 		bool shouldTransfer = false;
 
-		RendererImplData(Vec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
+		RendererImplData(iVec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
 		: instance(),
 		device(&instance),
 		windowSize(windowSize), 
@@ -79,7 +79,7 @@ namespace Charra
 
 	Renderer::Renderer(const std::string& mainWindowName, Events* eventHandler)
 	{
-		Vec2 windowSize = {400,400};
+		iVec2 windowSize(400,400);
 		Platform::createWindow(mainWindowName, windowSize);
 		m_pImpl  = std::make_unique<RendererImplData>(windowSize, mainWindowName, eventHandler);
 

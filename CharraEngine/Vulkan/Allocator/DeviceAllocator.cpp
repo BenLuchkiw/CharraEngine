@@ -51,8 +51,8 @@ namespace Charra
 		{
 			alignedSize = ((size + (selectedPage->alignment - 1)) & ~(selectedPage->alignment - 1));
 		}
-
-		Vec2 allocation = {selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size)};
+		
+		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size));
 		selectedPage->m_allocations.push_back(allocation);
 
 		*buffer = selectedPage->buffer; 
@@ -87,7 +87,7 @@ namespace Charra
 		CHARRA_LOG_ERROR(!selectedPage, "Attempt to free memory that is not allocated");
 		CHARRA_LOG_ERROR(selectedPage->m_allocations.size() == 0, "Attempt to free memory that is not allocated");
 
-		Vec2 allocInfo{};
+		iVec2 allocInfo;
 		for(int i = 0; i < selectedPage->m_allocations.size(); i++)
 		{
 			if(selectedPage->m_allocations[i].offset == offset)
@@ -170,7 +170,7 @@ namespace Charra
 			alignedSize = ((size + (selectedPage->alignment - 1)) & ~(selectedPage->alignment - 1));
 		}
 
-		Vec2 allocation = {selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size)};
+		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size));
 		selectedPage->m_allocations.push_back(allocation);
 
 		*buffer = selectedPage->buffer; 
@@ -207,7 +207,7 @@ namespace Charra
 		CHARRA_LOG_ERROR(!selectedPage, "Attempt to free memory that is not allocated");
 		CHARRA_LOG_ERROR(selectedPage->m_allocations.size() == 0, "Attempt to free memory that is not allocated");
 
-		Vec2 allocInfo{};
+		iVec2 allocInfo;
 		for(int i = 0; i < selectedPage->m_allocations.size(); i++)
 		{
 			if(selectedPage->m_allocations[i].offset == offset)
@@ -303,7 +303,7 @@ namespace Charra
 			vkMapMemory(m_deviceRef->getDevice(), page.memory, 0, page.size, 0, &page.alloc);
 	
 			m_amd256Pages.push_back(page);
-			Vec2 space = {0, static_cast<uint32_t>(allocInfo.allocationSize)};
+			iVec2 space(0, static_cast<uint32_t>(allocInfo.allocationSize));
 			m_amd256Pages.back().m_freeSpaces.push_back(space);
 		}
 		else
@@ -329,7 +329,7 @@ namespace Charra
 			vkBindBufferMemory(m_deviceRef->getDevice(), page.buffer, page.memory, 0);
 	
 			m_devicePages.push_back(page);
-			Vec2 space = {0, static_cast<uint32_t>(allocInfo.allocationSize)};
+			iVec2 space(0, static_cast<uint32_t>(allocInfo.allocationSize));
 			m_devicePages.back().m_freeSpaces.push_back(space);
 		}
 	}

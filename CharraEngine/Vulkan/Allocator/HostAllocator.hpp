@@ -35,9 +35,9 @@ namespace Charra
 			VkDeviceMemory memory;
 			void* alloc;
 
-			std::vector<Vec2> m_allocations;
+			std::vector<iVec2> m_allocations;
 			// All freespace are aligned on allocation
-			std::vector<Vec2> m_freeSpaces;
+			std::vector<iVec2> m_freeSpaces;
 		};
 
 		Device* m_deviceRef;

@@ -39,9 +39,9 @@ namespace Charra
 
 		std::vector<char> readFile(const char* fileName, uint32_t* fileSize);
 
-		void createWindow(const std::string& windowName, Vec2 size, Vec2 position);
+		void createWindow(const std::string& windowName, iVec2 size, iVec2 position);
 		// 0X0x80000000 is meant to replace WC_USEDEFAULT to avoid dirty casts
-		inline void createWindow(const std::string& windowName, Vec2 size) { createWindow(windowName, size, {0x80000000, 0x80000000}); }
+		inline void createWindow(const std::string& windowName, iVec2 size) { createWindow(windowName, size, {0x80000000, 0x80000000}); }
 		inline void createWindow(const std::string& windowName) { createWindow(windowName, {0x80000000, 0x80000000}, {0x80000000, 0x80000000}); }
 
 		void fullscreen(int windowIndex, bool borderless);

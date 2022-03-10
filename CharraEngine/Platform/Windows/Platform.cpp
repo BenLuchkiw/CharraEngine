@@ -31,7 +31,7 @@ namespace Charra
 			uint32_t startX;
 			uint32_t startY;
 			LRESULT startingArea;
-			Vec2 moveOffset;
+			iVec2 moveOffset;
 		};
 
 		struct PlatformData
@@ -41,7 +41,7 @@ namespace Charra
 			uint32_t currentIdGen = 0; // For unique id
 			std::vector<uint32_t> windowIds;
 			std::vector<LPCSTR> windowNames;
-			std::vector<Vec2> windowDimensions;
+			std::vector<iVec2> windowDimensions;
 			LPCSTR applicationName;
 			WNDCLASS windowClass;
 
@@ -104,7 +104,7 @@ namespace Charra
 			return fileContents;
 		}
 
-		void createWindow(const std::string& windowName, Vec2 size, Vec2 position)
+		void createWindow(const std::string& windowName, iVec2 size, iVec2 position)
 		{
 			// TODO drag and drop files is changed here check msdn extended window styles
 
@@ -133,7 +133,7 @@ namespace Charra
 			g_platformData.windowDimensions.push_back({0,0});
 		}
 
-		static void moveWindow(uint32_t windowIndex, Vec2 position, Vec2 size)
+		static void moveWindow(uint32_t windowIndex, iVec2 position, iVec2 size)
 		{
 			//MoveWindow(g_platformData.windows[windowIndex], position.x, position.y, size.width, size.height, false);
 			HRESULT result = SetWindowPos(g_platformData.windows[windowIndex], 0, position.x, position.y, size.width, size.height, SWP_DEFERERASE | SWP_NOZORDER | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING);
@@ -290,8 +290,8 @@ namespace Charra
 			{
 				if(g_platformData.windows[i] == window)
 				{ 
-					Vec2 position = {static_cast<uint32_t>(dimensions.left), static_cast<uint32_t>(dimensions.top)};
-					Vec2 size = {static_cast<uint32_t>(dimensions.right - dimensions.left), static_cast<uint32_t>(dimensions.bottom - dimensions.top)};
+					iVec2 position = {static_cast<uint32_t>(dimensions.left), static_cast<uint32_t>(dimensions.top)};
+					iVec2 size = {static_cast<uint32_t>(dimensions.right - dimensions.left), static_cast<uint32_t>(dimensions.bottom - dimensions.top)};
 
 					if(size.width < 50 || size.height < 50 || dimensions.right <= dimensions.left || dimensions.bottom <= dimensions.top)
 					{
@@ -383,7 +383,7 @@ namespace Charra
 		{
 			uint32_t mouseX;
 			uint32_t mouseY;
-			Vec2 newSize = {0,0};
+			iVec2 newSize(0, 0);
 			uint32_t result = 0;
 			LRESULT hitResult;
 			POINT cursorPos;
@@ -439,7 +439,8 @@ namespace Charra
 
 						if(hitResult == HTCAPTION)
 						{
-							g_platformData.resizeData.moveOffset = { mouseX, mouseY };
+							g_platformData.resizeData.moveOffset.x = mouseX;
+							g_platformData.resizeData.moveOffset.y = mouseY;
 						}
 						return 0;
 					}

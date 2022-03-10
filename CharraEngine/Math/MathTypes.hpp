@@ -7,105 +7,105 @@
 
 namespace Charra
 {
-	union fVec2
+	class iVec2
 	{
-		struct
+	public:
+		iVec2() :x(0), y(0) {}
+		iVec2(uint32_t a, uint32_t b) :x(a), y(b) {}
+
+		void operator=(const iVec2& val) { x=val.x, y=val.y; }
+
+		union
 		{
-			float x, y;
+			struct
+			{
+				uint32_t x, y;
+			};
+			struct
+			{
+				uint32_t width, height;
+			};		
+			struct
+			{
+				uint32_t offset, size;
+			};		
+			uint32_t elements[2];
 		};
-		struct
-		{
-			float offset, size;
-		};
-		struct 
-		{
-			float width, height;
-		};
-		float elements[2];
-	};
-	
-	union Vec2
-	{
-		struct
-		{
-			uint32_t x, y;
-		};
-		struct
-		{
-			uint32_t offset, size;
-		};
-		struct
-		{
-			uint32_t width, height;
-		};
-		uint32_t elements[2];
+		
+	private:
+
 	};
 
-	union fVec3
+	class fVec2
 	{
-		struct 
+	public:
+		fVec2(float a, float b) :x(a), y(b) {}
+		fVec2() :x(0.0f), y(0.0f) {}
+
+		void operator=(const fVec2& val) { x=val.x, y=val.y; }
+
+		union
 		{
-			float x, y, z;
+			struct
+			{
+				float x, y;
+			};
+			struct
+			{
+				float width, height;
+			};
+			float elements[2];
 		};
-		struct
-		{
-			float r, g, b;
-		};
-		struct
-		{
-			float width, height, length;
-		};
-		float elements[3];
-	};
-	
-	union Vec3
-	{
-		struct
-		{
-			uint32_t x, y, z;
-		};
-		struct
-		{
-			uint32_t r, g, b;
-		};
-		struct
-		{
-			uint32_t width, height, length;
-		};
-		uint32_t elements[3];
+		
+	private:
+
 	};
 
-	union fVec4
+	class fVec3
 	{
-		struct 
+	public:
+		fVec3(float a, float b, float c) :x(a), y(b), z(c) {}
+		fVec3() :x(0.0f), y(0.0f), z(0.0f) {}
+
+		void operator=(const fVec3& val) { x=val.x, y=val.y, z=val.z; }
+
+		union
 		{
-			float x, y, z, w;
+			struct
+			{
+				float x, y, z;
+			};
+			struct
+			{
+				float r, g, b;
+			};
+			float elements[3];
 		};
-		struct 
+	private:
+
+	};
+
+	class fVec4
+	{
+	public:
+		fVec4(float a, float b, float c, float d) :x(a), y(b), z(c), w(d) {}
+		fVec4() :x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+
+		void operator=(const fVec4& val) { x=val.x, y=val.y, z=val.z, w=val.w; }
+
+		union
 		{
-			float r, g, b, a;
-		};
-		struct
-		{
+			struct
+			{
+				float x, y, z, w;
+			};
+			struct
+			{
+				float r, g, b, a;
+			};
 			float elements[4];
 		};
-		
-	};
-	
-	union Vec4
-	{
-		struct 
-		{
-			uint32_t x, y, z, w;
-		};
-		struct
-		{
-			uint32_t r, g, b, a;
-		};
-		struct
-		{
-			uint32_t elements[4];
-		};
-		
+	private:
+
 	};
 }
