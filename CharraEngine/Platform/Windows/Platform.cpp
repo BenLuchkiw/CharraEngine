@@ -300,7 +300,10 @@ namespace Charra
 
 					moveWindow(i, position, size);
 
-					g_platformData.eventHandler->signalEvent(EventType::WINDOW_RESIZE, InputCode::NO_EVENT, (uint64_t)((uint64_t)size.width << 32 | size.height));
+					if(g_platformData.resizeData.startingArea != HTCAPTION)
+					{
+						g_platformData.eventHandler->signalEvent(EventType::WINDOW_RESIZE, InputCode::NO_EVENT, (uint64_t)((uint64_t)size.width << 32 | size.height));
+					}
 
 					break;
 				}
