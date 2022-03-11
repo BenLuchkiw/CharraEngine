@@ -15,6 +15,7 @@
 #include "Platform/Platform.hpp"
 #include "Core/Logging.hpp"
 #include "Math/RendererTypes.hpp"
+#include "Math/MathFunctions.hpp"
 
 #include "vulkan/vulkan.h"
 
@@ -88,27 +89,54 @@ namespace Charra
 		m_pImpl->eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT, m_pImpl->mainWindowSwapchain.resizeCallback, &m_pImpl->mainWindowSwapchain);
 		
 
+		//Vertex point;
+		//point.position.x = 0.0f;
+		//point.position.y =-0.5f;
+		//point.position.z = 0.5f;
+		//point.colour.r = 1.0f;
+		//point.colour.g = 0.0f;
+		//point.colour.b = 0.0f;
+		//point.colour.a = 1.0f;
+		//m_pImpl->vertices.push_back(point);
+
+		//point.position.x = 0.5f;
+		//point.position.y = 0.5f;
+		//point.colour.g = 0.0f;
+		//point.colour.b = 1.0f;
+		//m_pImpl->vertices.push_back(point);
+
+		//point.position.x =-0.5f;
+		//point.position.y = 0.5f;
+		//point.colour.r = 0.0f;
+		//point.colour.g = 1.0f;
+		//m_pImpl->vertices.push_back(point);
+		VkExtent2D extent = m_pImpl->mainWindowSwapchain.getPixelExtent();
+		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, extent.width, 0, extent.height);
+
 		Vertex point;
-		point.position.x = 0.0f;
-		point.position.y =-0.5f;
-		point.position.z = 0.5f;
+		point.position.x = 100.0f;
+		point.position.y = 0.0f;
+		point.position.z = 50.0f;
 		point.colour.r = 1.0f;
 		point.colour.g = 0.0f;
 		point.colour.b = 0.0f;
 		point.colour.a = 1.0f;
 		m_pImpl->vertices.push_back(point);
 
-		point.position.x = 0.5f;
-		point.position.y = 0.5f;
+		point.position.x = 200.0f;
+		point.position.y = 200.0f;
+		point.colour.r = 0.0f;
+		point.colour.g = 1.0f;
+		m_pImpl->vertices.push_back(point);
+
+		point.position.x = 0.0f;
 		point.colour.g = 0.0f;
 		point.colour.b = 1.0f;
 		m_pImpl->vertices.push_back(point);
 
-		point.position.x =-0.5f;
-		point.position.y = 0.5f;
-		point.colour.r = 0.0f;
-		point.colour.g = 1.0f;
-		m_pImpl->vertices.push_back(point);
+		m_pImpl->vertices[0].position = mulMatrix(mat, m_pImpl->vertices[0].position);
+		m_pImpl->vertices[1].position = mulMatrix(mat, m_pImpl->vertices[1].position);
+		m_pImpl->vertices[2].position = mulMatrix(mat, m_pImpl->vertices[2].position);
 
 		uint32_t size = sizeof(Vertex) * m_pImpl->vertices.size();
 

@@ -275,6 +275,12 @@ namespace Charra
 			{
 				float r, g, b, a;
 			};
+			struct
+			{
+				fVec3 vecABC;
+				float w;
+			};
+			
 			float elements[4];
 		};
 	private:

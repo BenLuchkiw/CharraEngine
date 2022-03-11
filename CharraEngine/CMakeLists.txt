@@ -42,7 +42,8 @@ ${CMAKE_CURRENT_LIST_DIR}/Vulkan/ValidationLayers.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/ValidationLayers.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Math/MathTypes.hpp
-${CMAKE_CURRENT_LIST_DIR}/Math/MathTypes.cpp
+${CMAKE_CURRENT_LIST_DIR}/Math/MathFunctions.hpp
+${CMAKE_CURRENT_LIST_DIR}/Math/MathFunctions.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Math/RendererTypes.hpp
 
 PARENT_SCOPE)
