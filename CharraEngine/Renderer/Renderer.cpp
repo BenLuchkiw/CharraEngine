@@ -185,8 +185,10 @@ namespace Charra
 
 			CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
-
+		
+		// For next frame
 		m_pImpl->mainWindowSwapchain.prepareNextImage(&m_pImpl->mainWindowImageWaitSemaphore);
+
 		m_pImpl->commandBuffers.resetCommandBuffer(m_pImpl->commandBufferIndex);
 		m_pImpl->commandBuffers.beginRecording(m_pImpl->commandBufferIndex);
 
@@ -238,10 +240,10 @@ namespace Charra
 		waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
 		VkSubmitInfo submitInfo{};
-		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-		submitInfo.pNext;
 		submitInfo.waitSemaphoreCount = renderWaitSemaphores.size();
 		submitInfo.pWaitSemaphores = renderWaitSemaphores.data();
+		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
+		submitInfo.pNext;
 		submitInfo.pWaitDstStageMask = waitStages.data();
 		submitInfo.commandBufferCount = 1;
 		VkCommandBuffer commandBuffers[] = {m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex)};
@@ -254,7 +256,9 @@ namespace Charra
 		VkFence fences[] = {m_pImpl->renderFinishedFence.getFence()};
 		vkWaitForFences(m_pImpl->device.getDevice(), 1, fences, true, 100000000);
 		m_pImpl->renderFinishedFence.reset();
-		
+
+		// This is the minimal info that can be done after waiting on fences
+
 		CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getGraphicsQueue(), 1, &submitInfo, m_pImpl->renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
 
 		VkPresentInfoKHR presentInfo{};

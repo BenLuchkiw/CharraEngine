@@ -124,8 +124,14 @@ namespace Charra
 		if(m_resized)
 		{
 			recreateSwapchain();
-			destroyImages();
-			createImages();
+			
+			m_defferedImages.clear();
+			m_defferedImageViews.clear();
+			m_defferedFramebuffers.clear();
+
+			m_defferedImages.swap(m_images);
+			m_defferedImageViews.swap(m_imageViews);
+			m_defferedFramebuffers.swap(m_framebuffers);
 		}
 		if(m_framebufferInvalid)
 		{
@@ -202,10 +208,10 @@ namespace Charra
 
 	void Swapchain::destroyImages()
 	{
-		for (int i = 0; i < m_imageCount; i++)
+		for (int i = 0; i < m_defferedFramebuffers.size(); i++)
 		{
-			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_framebuffers[i], NULL);
-			vkDestroyImageView(m_deviceRef->getDevice(), m_imageViews[i], NULL);
+			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_defferedFramebuffers[i], NULL);
+			vkDestroyImageView(m_deviceRef->getDevice(), m_defferedImageViews[i], NULL);
 		}
 	}
 };

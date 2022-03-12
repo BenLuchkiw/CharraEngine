@@ -38,7 +38,8 @@ namespace Charra
 
 		inline void invalidateSwapchain() { m_resized = true; }
 
-		inline VkFramebuffer getFramebuffer() { return m_framebuffers[m_imageIndex]; }
+		inline VkFramebuffer getFramebuffer() { 
+			return m_framebuffers[m_imageIndex]; }
 	private: // Methods
 
 		void onInit();
@@ -68,5 +69,10 @@ namespace Charra
 		std::vector<VkImage> m_images;
 		std::vector<VkImageView> m_imageViews;
 		std::vector<VkFramebuffer> m_framebuffers;
+
+		// Stuff that needs to be destroyed in the next frame
+		std::vector<VkImage> m_defferedImages;
+		std::vector<VkImageView> m_defferedImageViews;
+		std::vector<VkFramebuffer> m_defferedFramebuffers;
 	};
 }
