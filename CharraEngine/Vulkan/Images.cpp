@@ -1,5 +1,7 @@
 #include "Images.hpp"
 
+#include "vulkan/vulkan.h"
+
 #include "Core/Logging.hpp"
 
 namespace Charra
@@ -31,10 +33,10 @@ namespace Charra
 
 	void Images::createImages()
 	{
-		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), *m_swapchainRef->getSwapchain(), &m_imageCount, NULL);
+		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchainRef->getSwapchain(), &m_imageCount, NULL);
 		CHARRA_LOG_ERROR(m_imageCount == 0, "No swapchain images were available");
 		m_images.resize(m_imageCount);
-		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), *m_swapchainRef->getSwapchain(), &m_imageCount, m_images.data());
+		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchainRef->getSwapchain(), &m_imageCount, m_images.data());
 		
 		VkImageViewCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -68,7 +70,7 @@ namespace Charra
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferCreateInfo.pNext;
 		framebufferCreateInfo.flags;
-		framebufferCreateInfo.renderPass = *m_renderpassRef->getRenderPass();
+		framebufferCreateInfo.renderPass = m_renderpassRef->getRenderPass();
 		framebufferCreateInfo.attachmentCount = 1;
 		framebufferCreateInfo.pAttachments;
 		framebufferCreateInfo.width = m_swapchainRef->getPixelExtent().width;

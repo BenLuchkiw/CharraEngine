@@ -15,7 +15,7 @@ namespace Charra
 		CHARRA_LOG_ERROR(m_pages.size(), "Not all host pages were freed");
 	}
 
-	void HostAllocator::alloc(VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData)
+	void HostAllocator::alloc(VkDeviceMemory* memory, VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData)
 	{
 		// Worst case alignment this gets updated later
 		VkDeviceSize alignedSize = ((size + (128 - 1)) & ~(128 - 1));
@@ -54,6 +54,7 @@ namespace Charra
 		selectedPage->m_allocations.push_back(allocation);
 
 		*buffer = selectedPage->buffer; 
+		*memory = selectedPage->memory;
 		*offsetIntoBuffer = static_cast<VkDeviceSize>(selectedPage->m_freeSpaces[freeSpaceIndex].offset);
 
 		*pMappedData = reinterpret_cast<void*>(reinterpret_cast<std::size_t>(selectedPage->alloc) + selectedPage->m_freeSpaces[freeSpaceIndex].offset);

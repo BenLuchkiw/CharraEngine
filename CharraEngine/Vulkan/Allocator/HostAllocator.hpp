@@ -17,7 +17,7 @@ namespace Charra
 		HostAllocator(Device* deviceRef, uint32_t memTypeIndex);
 		~HostAllocator();
 
-		void alloc(VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData);
+		void alloc(VkDeviceMemory* memory, VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData);
 		void free(VkBuffer buffer, VkDeviceSize offset);
 	private: // Methdos
 		void createPage(VkDeviceSize size);

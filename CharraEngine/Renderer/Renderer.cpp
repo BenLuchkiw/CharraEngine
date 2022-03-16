@@ -142,7 +142,7 @@ namespace Charra
 
 		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::CPU);
 
-		memcpy(m_pImpl->vertexStagingBuffer.data, m_pImpl->vertices.data(), size);
+		m_pImpl->allocator.submitData(&m_pImpl->vertexStagingBuffer, m_pImpl->vertices.data(), size, 0);
 
 		BufferTypeFlags flags = m_pImpl->allocator.getBufferTypes();
 		if(flags & BufferType::GPU)

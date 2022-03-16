@@ -19,6 +19,9 @@ namespace Charra
 		Allocator(Device* deviceRef);
 		~Allocator();
 
+		void submitData(Buffer* buffer, void* data, size_t bytes, size_t offset);
+		void getData();
+
 		Buffer allocateBuffer(uint64_t size, BufferTypeFlags type);
 		void deallocateBuffer(Buffer* buffer);
 		void applyForTransfer(Buffer* src, Buffer* dst);

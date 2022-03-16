@@ -28,14 +28,16 @@ namespace Charra
 		// Size of data in bytes
 		VkDeviceSize size;
 
-		// If this is not nullptr then it is mapped to a buffer
-		void* data = nullptr;
 
 	private:
 		// These are flags for interal allocator usage
+		VkDeviceMemory memory;
 		bool deviceBuffer; 
 		bool amd256;
 
+		// If this is not nullptr then it is mapped to a buffer
+		void* data = nullptr;
+		
 		friend class Allocator;
 	};
 }

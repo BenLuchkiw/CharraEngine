@@ -115,13 +115,33 @@ namespace Charra
 
 	}
 
+	void Allocator::submitData(Buffer* buffer, void* data, size_t bytes, size_t offset)
+	{
+		char* ptr = static_cast<char*>(data);
+		*ptr += offset;
+
+		memcpy(buffer->data, ptr, bytes);
+
+		VkMappedMemoryRange range;
+		range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+		range.pNext;
+		range.size = bytes;
+		range.offset = buffer->offset;
+		range.memory = buffer->memory;
+
+		if(!m_hostCoherant)
+		{
+			vkFlushMappedMemoryRanges(m_deviceRef->getDevice(), 1, &range);
+		}
+	}
+
 	Buffer Allocator::allocateBuffer(uint64_t size, BufferTypeFlags type)
 	{
 		Buffer buffer{};
 
 		if(type == BufferType::CPU)
 		{
-			m_hostAllocator->alloc(size, &buffer.buffer, &buffer.offset, &buffer.data);
+			m_hostAllocator->alloc(&buffer.memory, size, &buffer.buffer, &buffer.offset, &buffer.data);
 			buffer.deviceBuffer = false;
 			buffer.amd256 = false;
 		}
