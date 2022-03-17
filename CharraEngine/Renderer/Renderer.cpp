@@ -38,7 +38,6 @@ namespace Charra
 
 	struct WindowData
 	{
-
 		iVec2 windowSize;
 		std::string windowName;
 		Swapchain swapchain;

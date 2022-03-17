@@ -21,6 +21,12 @@ namespace Charra
 	Swapchain::~Swapchain()
 	{
 		destroyImages();
+		for (int i = 0; i < m_framebuffers.size(); i++)
+		{
+			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_framebuffers[i], NULL);
+			vkDestroyImageView(m_deviceRef->getDevice(), m_imageViews[i], NULL);
+		}
+
 		vkDestroySwapchainKHR(m_deviceRef->getDevice(), m_swapchain, NULL);
 		vkDestroySurfaceKHR(m_instanceRef->getInstance(), m_surface, NULL);
 	}
@@ -115,9 +121,16 @@ namespace Charra
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = m_presentMode;
 		createInfo.clipped = VK_TRUE; // #TODO this needs more research, and may end up needing to be changed for simulations
-		createInfo.oldSwapchain = (m_swapchain == VK_NULL_HANDLE) ? NULL : m_swapchain; // #Resizing will need this
+		createInfo.oldSwapchain = m_swapchain; // #Resizing will need this
+
+		auto oldSwapchain = m_swapchain;
 
 		vkCreateSwapchainKHR(m_deviceRef->getDevice(), &createInfo, NULL, &m_swapchain);
+
+		if(oldSwapchain == VK_NULL_HANDLE)
+		{	
+			vkDestroySwapchainKHR(m_deviceRef->getDevice(), oldSwapchain, NULL);
+		}
 	}
 
 	void Swapchain::prepareNextImage(Semaphore* waitSemaphore)
@@ -136,6 +149,7 @@ namespace Charra
 		}
 		if(m_framebufferInvalid)
 		{
+			m_framebufferInvalid = false;
 			createImages();
 		}
 		vkAcquireNextImageKHR(m_deviceRef->getDevice(), m_swapchain, UINT32_MAX, waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex);
