@@ -407,8 +407,6 @@ namespace Charra
 					return 0;
 
 				case WM_DESTROY:
-					DestroyWindow(window);
-					
 					for(int i = 0; i < g_platformData.windows.size(); i++)
 					{
 						if(g_platformData.windows[i] == window)
@@ -419,6 +417,9 @@ namespace Charra
 							g_platformData.windowIds.erase(g_platformData.windowIds.begin() + i);
 						}
 					}
+					
+					DestroyWindow(window);
+					
 					return 0;
 
 				case WM_LBUTTONDOWN:

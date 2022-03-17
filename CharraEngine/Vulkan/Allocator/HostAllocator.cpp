@@ -50,7 +50,7 @@ namespace Charra
 			alignedSize = ((size + (selectedPage->alignment - 1)) & ~(selectedPage->alignment - 1));
 		}
 
-		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size));
+		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, alignedSize);
 		selectedPage->m_allocations.push_back(allocation);
 
 		*buffer = selectedPage->buffer; 
@@ -129,15 +129,10 @@ namespace Charra
 		{
 			selectedPage->m_freeSpaces.push_back(allocInfo);
 		}
-		else
+
+		if(selectedPage->freeBytes == selectedPage->size)
 		{
-			if(selectedPage->freeBytes == selectedPage->size)
-			{
-				vkUnmapMemory(m_deviceRef->getDevice(), selectedPage->memory);
-				vkFreeMemory(m_deviceRef->getDevice(), selectedPage->memory, NULL);
-				vkDestroyBuffer(m_deviceRef->getDevice(), selectedPage->buffer, NULL);
-				m_pages.erase(m_pages.begin() + selectedPageIndex);
-			}
+			freePage(selectedPageIndex);
 		}
 	}
 
@@ -182,5 +177,15 @@ namespace Charra
 		m_pages.push_back(page);
 		iVec2 space = {0, static_cast<uint32_t>(allocInfo.allocationSize)};
 		m_pages.back().m_freeSpaces.push_back(space);
+	}
+
+	void HostAllocator::freePage(uint32_t pageIndex)
+	{
+		auto& page = m_pages[pageIndex];
+
+		vkDestroyBuffer(m_deviceRef->getDevice(), page.buffer, NULL);
+		vkFreeMemory(m_deviceRef->getDevice(), page.memory, NULL);
+
+		m_pages.erase(m_pages.begin() + pageIndex);
 	}
 }

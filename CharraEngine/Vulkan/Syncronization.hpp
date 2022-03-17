@@ -14,7 +14,7 @@ namespace Charra
 
 		// Move constructors so that vectors work, TODO research what this actually does
 		Semaphore(Semaphore&&) noexcept {}
-		Semaphore& operator=(Semaphore&&) noexcept {}
+		//Semaphore& operator=(Semaphore&&) noexcept {}
 
 		inline VkSemaphore getSemaphore() { return m_semaphore; }
 		

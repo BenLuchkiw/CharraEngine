@@ -14,13 +14,12 @@ namespace Charra
 	{
 		CHARRA_LOG_ERROR(m_amd256Pages.size(), "Not all amd256 data was freed");
 		CHARRA_LOG_ERROR(m_devicePages.size(), "Not all device memory was freed");
-	
 	}
 	
 	void DeviceAllocator::alloc(VkDeviceSize size, VkDeviceSize* offsetIntoBuffer, VkBuffer* buffer)
 	{
 		// This assumes worst case alignment, will get updated later
-		VkDeviceSize alignedSize = ((size + (128 - 1)) & !(128 - 1));
+		VkDeviceSize alignedSize = ((size + (256 - 1)) & ~(256 - 1));
 		int freeSpaceIndex;
 		DevicePage* selectedPage = nullptr;
 
@@ -47,12 +46,12 @@ namespace Charra
 			freeSpaceIndex = 0;
 		}
 
-		if(selectedPage->alignment != 128)
+		if(selectedPage->alignment != 256)
 		{
 			alignedSize = ((size + (selectedPage->alignment - 1)) & ~(selectedPage->alignment - 1));
 		}
 		
-		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(size));
+		iVec2 allocation(selectedPage->m_freeSpaces[freeSpaceIndex].offset, static_cast<uint32_t>(alignedSize));
 		selectedPage->m_allocations.push_back(allocation);
 
 		*buffer = selectedPage->buffer; 
@@ -65,6 +64,7 @@ namespace Charra
 		else
 		{
 			selectedPage->m_freeSpaces[freeSpaceIndex].offset += alignedSize;
+			selectedPage->m_freeSpaces[freeSpaceIndex].size -= alignedSize;
 		}
 
 		selectedPage->freeBytes -= alignedSize;
@@ -127,6 +127,11 @@ namespace Charra
 		if(merges == 0)
 		{
 			selectedPage->m_freeSpaces.push_back(allocInfo);
+		}
+
+		if(selectedPage->freeBytes == selectedPage->size)
+		{
+			freePage(selectedPageIndex, false);
 		}
 	}
 
@@ -248,15 +253,10 @@ namespace Charra
 		{
 			selectedPage->m_freeSpaces.push_back(allocInfo);
 		}
-		else
+
+		if(selectedPage->freeBytes == selectedPage->size)
 		{
-			if(selectedPage->freeBytes == selectedPage->size)
-			{
-				vkUnmapMemory(m_deviceRef->getDevice(), selectedPage->memory);
-				vkFreeMemory(m_deviceRef->getDevice(), selectedPage->memory, NULL);
-				vkDestroyBuffer(m_deviceRef->getDevice(), selectedPage->buffer, NULL);
-				m_amd256Pages.erase(m_amd256Pages.begin() + selectedPageIndex);
-			}
+			freePage(selectedPageIndex, false);
 		}
 	}
 
@@ -331,6 +331,28 @@ namespace Charra
 			m_devicePages.push_back(page);
 			iVec2 space(0, static_cast<uint32_t>(allocInfo.allocationSize));
 			m_devicePages.back().m_freeSpaces.push_back(space);
+		}
+	}
+
+	void DeviceAllocator::freePage(uint32_t pageIndex, bool amd256Page)
+	{
+		if(amd256Page)
+		{
+			auto& page = m_amd256Pages[pageIndex];
+			
+			vkDestroyBuffer(m_deviceRef->getDevice(), page.buffer, NULL);
+			vkFreeMemory(m_deviceRef->getDevice(), page.memory, NULL);
+
+			m_amd256Pages.erase(m_amd256Pages.begin() + pageIndex);
+		}
+		else
+		{
+			auto& page = m_devicePages[pageIndex];
+
+			vkDestroyBuffer(m_deviceRef->getDevice(), page.buffer, NULL);
+			vkFreeMemory(m_deviceRef->getDevice(), page.memory, NULL);
+
+			m_devicePages.erase(m_devicePages.begin() + pageIndex);
 		}
 	}
 }

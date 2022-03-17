@@ -1,21 +1,22 @@
 #include "Renderer.hpp"
 
-#include "vulkan/Allocator/Allocator.hpp"
-#include "vulkan/Allocator/Buffer.hpp"
-#include "Vulkan/CommandBuffers.hpp"
-#include "Vulkan/Device.hpp"
-#include "Vulkan/Instance.hpp"
-#include "Vulkan/Shader.hpp"
-#include "Vulkan/ValidationLayers.hpp"
-#include "Vulkan/Pipeline.hpp"
-#include "Vulkan/Swapchain.hpp"
-#include "Vulkan/Syncronization.hpp"
-#include "Vulkan/Renderpass.hpp"
-
 #include "Platform/Platform.hpp"
 #include "Core/Logging.hpp"
 #include "Math/RendererTypes.hpp"
 #include "Math/MathFunctions.hpp"
+
+// For RendererImplData
+#include "Vulkan/Allocator/Allocator.hpp"
+#include "Vulkan/Device.hpp"
+#include "Vulkan/Instance.hpp"
+#include "Vulkan/Syncronization.hpp"
+
+// For WindowData
+#include "Vulkan/Swapchain.hpp"
+#include "Vulkan/Renderpass.hpp"
+
+// For MaterialData
+#include "Vulkan/Pipeline.hpp"
 
 #include "vulkan/vulkan.h"
 
@@ -23,94 +24,103 @@
 
 namespace Charra
 {
-	struct RendererImplData
+	struct MaterialData
 	{
+		GraphicsPipeline pipeline;
+
+		MaterialData(Device* deviceRef, Renderpass* renderpassRef,
+		 VkVertexInputBindingDescription vertexBindingAttributes,
+		 std::vector<VkVertexInputAttributeDescription> attributeDescription)
+		:pipeline(deviceRef, renderpassRef, "SimpleVertex.spv", "SimpleFragment.spv",
+		 vertexBindingAttributes, attributeDescription)
+		{}
+	};
+
+	struct WindowData
+	{
+
+		iVec2 windowSize;
+		std::string windowName;
+		Swapchain swapchain;
+		Renderpass renderpass;
+		Semaphore imageWaitSemaphore;
+
+		// TODO this should not be here
 		VkVertexInputBindingDescription vertexBindingAttributes{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX};
 		std::vector<VkVertexInputAttributeDescription> attributeDescription = {
 			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)},
 			{1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, colour)}
 		};
 
+		MaterialData material;
+
+		WindowData(iVec2 size, const std::string& name, Device* deviceRef, Instance* instanceRef)
+		:windowSize(size), windowName(name), swapchain(deviceRef, instanceRef), 
+		 renderpass(deviceRef, swapchain.getSurfaceFormat()),
+		 imageWaitSemaphore(deviceRef),
+		 material(deviceRef, &renderpass, vertexBindingAttributes, attributeDescription)
+		{
+			swapchain.passRenderpass(&renderpass);
+		}
+	
+		WindowData(const WindowData&) = default;
+  		WindowData& operator=(const WindowData&) = default;
+  		WindowData(WindowData&&) = default;
+  		WindowData& operator=(WindowData&&) = default;
+	};
+
+	struct RendererImplData
+	{
+		Events* eventHandlerRef;
+
 		Instance instance;
 		Device device;
-
-		iVec2 windowSize;
-		std::string windowName;
-		Swapchain mainWindowSwapchain;
-		Renderpass renderpass;
-		Semaphore mainWindowImageWaitSemaphore;
 
 		Semaphore transferFinishedSemaphore;
 		Semaphore renderFinishSempahore;
 		Fence renderFinishedFence;
 
 		CommandBuffers commandBuffers;
-
-		GraphicsPipeline pipeline;
-
 		uint32_t commandBufferIndex = 0;
 
-		Events* eventHandlerRef;
-
 		Allocator allocator;
+
+		std::vector<WindowData> windows;
+
 		std::vector<Vertex> vertices;
 		Buffer vertexStagingBuffer{};
 		Buffer vertexDeviceBuffer{};
 		bool shouldTransfer = false;
 
 		RendererImplData(iVec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
-		: instance(),
-		device(&instance),
-		windowSize(windowSize), 
-		windowName(windowName),
-		mainWindowSwapchain(&device, &instance),
-		renderpass(&device, mainWindowSwapchain.getSurfaceFormat()),
-		mainWindowImageWaitSemaphore(&device),
-		transferFinishedSemaphore(&device),
-		renderFinishSempahore(&device),
-		renderFinishedFence(&device),
-		commandBuffers(&device, 2, CommandBufferType::GRAPHICS),
-		pipeline(&device, &renderpass, "SimpleVertex.spv", "SimpleFragment.spv", vertexBindingAttributes, attributeDescription),
-		eventHandlerRef(eventHandlerRef),
-		allocator(&device)
+		:instance(),
+		 device(&instance),
+		 transferFinishedSemaphore(&device),
+		 renderFinishSempahore(&device),
+		 renderFinishedFence(&device),
+		 commandBuffers(&device, 2, CommandBufferType::GRAPHICS),
+		 eventHandlerRef(eventHandlerRef),
+		 allocator(&device)
 		{
-			mainWindowSwapchain.passRenderpass(&renderpass);
+			Platform::createWindow(windowName, windowSize);
+
+			windows.emplace_back(windowSize, windowName, &device, &instance);
+
+			eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT,
+			 										windows[0].swapchain.resizeCallback, &windows[0].swapchain);
+		}
+
+		~RendererImplData()
+		{
+			windows.clear();
 		}
 	};
 
 	Renderer::Renderer(const std::string& mainWindowName, Events* eventHandler)
 	{
-		iVec2 windowSize(400,400);
-		Platform::createWindow(mainWindowName, windowSize);
-		m_pImpl  = std::make_unique<RendererImplData>(windowSize, mainWindowName, eventHandler);
+		m_pImpl  = std::make_unique<RendererImplData>(iVec2(400, 400), mainWindowName, eventHandler);
 
-		// TODO mulitple windows will need this to be better
-
-		m_pImpl->eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT, m_pImpl->mainWindowSwapchain.resizeCallback, &m_pImpl->mainWindowSwapchain);
-		
-
-		//Vertex point;
-		//point.position.x = 0.0f;
-		//point.position.y =-0.5f;
-		//point.position.z = 0.5f;
-		//point.colour.r = 1.0f;
-		//point.colour.g = 0.0f;
-		//point.colour.b = 0.0f;
-		//point.colour.a = 1.0f;
-		//m_pImpl->vertices.push_back(point);
-
-		//point.position.x = 0.5f;
-		//point.position.y = 0.5f;
-		//point.colour.g = 0.0f;
-		//point.colour.b = 1.0f;
-		//m_pImpl->vertices.push_back(point);
-
-		//point.position.x =-0.5f;
-		//point.position.y = 0.5f;
-		//point.colour.r = 0.0f;
-		//point.colour.g = 1.0f;
-		//m_pImpl->vertices.push_back(point);
-		VkExtent2D extent = m_pImpl->mainWindowSwapchain.getPixelExtent();
+		VkExtent2D extent = m_pImpl->windows[0].swapchain.getPixelExtent();
 		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, extent.width, 0, extent.height);
 
 		Vertex point;
@@ -155,8 +165,11 @@ namespace Charra
 
 	Renderer::~Renderer()
 	{
+		vkDeviceWaitIdle(m_pImpl->device.getDevice());
 		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexDeviceBuffer);
 		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexStagingBuffer);
+
+		m_pImpl.reset();
 	}
 
 	void Renderer::draw()
@@ -187,21 +200,22 @@ namespace Charra
 		}
 		
 		// For next frame
-		m_pImpl->mainWindowSwapchain.prepareNextImage(&m_pImpl->mainWindowImageWaitSemaphore);
+		WindowData& window = m_pImpl->windows[0];
+		m_pImpl->windows[0].swapchain.prepareNextImage(&window.imageWaitSemaphore);
 
 		m_pImpl->commandBuffers.resetCommandBuffer(m_pImpl->commandBufferIndex);
 		m_pImpl->commandBuffers.beginRecording(m_pImpl->commandBufferIndex);
 
 		// I will record the main window now
-		m_pImpl->commandBuffers.beginRenderpass(m_pImpl->renderpass.getRenderPass(),
-												m_pImpl->mainWindowSwapchain.getFramebuffer(), 
-												m_pImpl->pipeline.getPipeline(),
-												m_pImpl->mainWindowSwapchain.getPixelExtent(),
+		m_pImpl->commandBuffers.beginRenderpass(window.renderpass.getRenderPass(),
+												window.swapchain.getFramebuffer(), 
+												window.material.pipeline.getPipeline(),
+												window.swapchain.getPixelExtent(),
 												m_pImpl->commandBufferIndex);
 
 
 		VkRect2D scissor;
-		scissor.extent = m_pImpl->mainWindowSwapchain.getPixelExtent();
+		scissor.extent = window.swapchain.getPixelExtent();
 		scissor.offset = {0,0};
 
 		VkViewport viewportCreateInfo{};
@@ -236,7 +250,7 @@ namespace Charra
 		m_pImpl->commandBuffers.endRecording(m_pImpl->commandBufferIndex);
 
 		// Submit command buffers
-		renderWaitSemaphores.push_back(m_pImpl->mainWindowImageWaitSemaphore.getSemaphore());
+		renderWaitSemaphores.push_back(window.imageWaitSemaphore.getSemaphore());
 		waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
 		VkSubmitInfo submitInfo{};
@@ -268,9 +282,9 @@ namespace Charra
 		VkSemaphore presentSemaphores[] = {m_pImpl->renderFinishSempahore.getSemaphore()};
 		presentInfo.pWaitSemaphores = presentSemaphores;
 		presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
-		VkSwapchainKHR swapchains[1] = {m_pImpl->mainWindowSwapchain.getSwapchain()};
+		VkSwapchainKHR swapchains[1] = {window.swapchain.getSwapchain()};
 		presentInfo.pSwapchains = swapchains;
-		const uint32_t imageIndices[1] = {m_pImpl->mainWindowSwapchain.getImageIndex()};
+		const uint32_t imageIndices[1] = {window.swapchain.getImageIndex()};
 		presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
 		presentInfo.pResults;
 

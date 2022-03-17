@@ -26,6 +26,7 @@ namespace Charra
 
 	private: // Method
 		void addPage(VkDeviceSize size, bool amd256Page);
+		void freePage(uint32_t pageIndex, bool amd256Page);
 
 	private: // Member
 		struct Amd256Page

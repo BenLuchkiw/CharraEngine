@@ -20,6 +20,7 @@ namespace Charra
 
 	Swapchain::~Swapchain()
 	{
+		destroyImages();
 		vkDestroySwapchainKHR(m_deviceRef->getDevice(), m_swapchain, NULL);
 		vkDestroySurfaceKHR(m_instanceRef->getInstance(), m_surface, NULL);
 	}

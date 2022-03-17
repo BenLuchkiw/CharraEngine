@@ -21,6 +21,7 @@ namespace Charra
 		void free(VkBuffer buffer, VkDeviceSize offset);
 	private: // Methdos
 		void createPage(VkDeviceSize size);
+		void freePage(uint32_t pageIndex);
 
 	private: // Members
 		struct Page

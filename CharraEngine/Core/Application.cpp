@@ -36,8 +36,6 @@ namespace Charra
 
 		while(!Platform::shouldAppQuit())
 		{
-			Platform::pollEvents();
-
 			renderer.draw();
 
 			auto message = m_eventHandler.getTextBuffer();
@@ -54,6 +52,8 @@ namespace Charra
 			stream << "Delta time: " << deltaTime << " fps: " << (1000.0f / deltaTime) << "\n";
 
 			CHARRA_LOG_INFO(true, stream.str());
+
+			Platform::pollEvents();
 		}
 	}
 };
