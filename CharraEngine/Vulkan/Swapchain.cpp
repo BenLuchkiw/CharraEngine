@@ -90,13 +90,13 @@ namespace Charra
 		vkGetPhysicalDeviceSurfacePresentModesKHR(m_deviceRef->getPhysicalDevice(), m_surface, &presentModeCount, presentModes.data());
 
 		m_presentMode = VK_PRESENT_MODE_FIFO_KHR;
-		for (const auto& presentMode : presentModes)
-		{
-			if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
-			{
-				m_presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
-			}
-		}
+		//for (const auto& presentMode : presentModes)
+		//{
+		//	if (presentMode == VK_PRESENT_MODE_MAILBOX_KHR)
+		//	{
+		//		m_presentMode = VK_PRESENT_MODE_MAILBOX_KHR;
+		//	}
+		//}
 	}
 
 	void Swapchain::createSwapchain()
@@ -137,8 +137,6 @@ namespace Charra
 	{
 		if(m_resized)
 		{
-			recreateSwapchain();
-			
 			m_defferedImages.clear();
 			m_defferedImageViews.clear();
 			m_defferedFramebuffers.clear();
@@ -146,6 +144,8 @@ namespace Charra
 			m_defferedImages.swap(m_images);
 			m_defferedImageViews.swap(m_imageViews);
 			m_defferedFramebuffers.swap(m_framebuffers);
+			
+			recreateSwapchain();
 		}
 		if(m_framebufferInvalid)
 		{

@@ -188,13 +188,6 @@ namespace Charra
 
 	void Allocator::applyForTransfer(Buffer* src, Buffer* dst)
 	{
-		m_transfers.emplace_back();
-
-		Transfer* transfer = &m_transfers.back();
-
-		transfer->src       = src->buffer;
-		transfer->dst       = dst->buffer;
-
 		VkBufferCopy copyData;
 		copyData.srcOffset = src->offset;
 		copyData.dstOffset = dst->offset;

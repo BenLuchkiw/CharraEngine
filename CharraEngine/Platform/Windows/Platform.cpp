@@ -94,7 +94,8 @@ namespace Charra
 			DWORD fileRead;
 			ReadFile(file, fileContents.data(), fileLength, &fileRead, NULL);
 
-			DeleteFile(fileName);
+			CloseHandle(file);
+			//DeleteFile(fileName);
 
 			*fileSize = static_cast<uint32_t>(fileRead);
 

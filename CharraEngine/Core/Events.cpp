@@ -74,7 +74,7 @@ namespace Charra
 			{
 				if(it->callback(type, code, data, it->privateData))
 				{
-					return;
+					break;
 				}
 				else
 				{

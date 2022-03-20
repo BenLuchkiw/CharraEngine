@@ -18,7 +18,7 @@ namespace Charra
 	void HostAllocator::alloc(VkDeviceMemory* memory, VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData)
 	{
 		// Worst case alignment this gets updated later
-		VkDeviceSize alignedSize = ((size + (128 - 1)) & ~(128 - 1));
+		VkDeviceSize alignedSize = ((size + (256 - 1)) & ~(256 - 1));
 		Page* selectedPage = nullptr;
 		int freeSpaceIndex = UINT32_MAX;
 
@@ -45,7 +45,7 @@ namespace Charra
 			freeSpaceIndex = 0;
 		}
 
-		if(selectedPage->alignment != 128)
+		if(selectedPage->alignment != 256)
 		{
 			alignedSize = ((size + (selectedPage->alignment - 1)) & ~(selectedPage->alignment - 1));
 		}

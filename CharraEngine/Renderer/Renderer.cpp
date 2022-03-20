@@ -87,8 +87,11 @@ namespace Charra
 		std::vector<WindowData> windows;
 
 		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
 		Buffer vertexStagingBuffer{};
 		Buffer vertexDeviceBuffer{};
+		Buffer indexStagingBuffer{};
+		Buffer indexDeviceBuffer{};
 		bool shouldTransfer = false;
 
 		RendererImplData(iVec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
@@ -101,10 +104,11 @@ namespace Charra
 		 eventHandlerRef(eventHandlerRef),
 		 allocator(&device)
 		{
+			// TODO max size
+			windows.reserve(20);
+
 			Platform::createWindow(windowName, windowSize);
-
 			windows.emplace_back(windowSize, windowName, &device, &instance);
-
 			eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT,
 			 										windows[0].swapchain.resizeCallback, &windows[0].swapchain);
 		}
@@ -123,7 +127,7 @@ namespace Charra
 		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, extent.width, 0, extent.height);
 
 		Vertex point;
-		point.position.x = 100.0f;
+		point.position.x = 0.0f;
 		point.position.y = 0.0f;
 		point.position.z = 50.0f;
 		point.colour.r = 1.0f;
@@ -133,25 +137,39 @@ namespace Charra
 		m_pImpl->vertices.push_back(point);
 
 		point.position.x = 200.0f;
-		point.position.y = 200.0f;
 		point.colour.r = 0.0f;
 		point.colour.g = 1.0f;
 		m_pImpl->vertices.push_back(point);
 
-		point.position.x = 0.0f;
+		point.position.x = 200.0f;
+		point.position.y = 200.0f;
 		point.colour.g = 0.0f;
 		point.colour.b = 1.0f;
+		m_pImpl->vertices.push_back(point);
+
+		point.position.x = 0.0f;
+		point.colour.b = 0.0f;
 		m_pImpl->vertices.push_back(point);
 
 		m_pImpl->vertices[0].position = mulMatrix(mat, m_pImpl->vertices[0].position);
 		m_pImpl->vertices[1].position = mulMatrix(mat, m_pImpl->vertices[1].position);
 		m_pImpl->vertices[2].position = mulMatrix(mat, m_pImpl->vertices[2].position);
+		m_pImpl->vertices[3].position = mulMatrix(mat, m_pImpl->vertices[3].position);
+
+		m_pImpl->indices.push_back(0);
+		m_pImpl->indices.push_back(1);
+		m_pImpl->indices.push_back(2);
+		m_pImpl->indices.push_back(2);
+		m_pImpl->indices.push_back(3);
+		m_pImpl->indices.push_back(0);
 
 		uint32_t size = sizeof(Vertex) * m_pImpl->vertices.size();
 
 		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::CPU);
+		m_pImpl->indexStagingBuffer = m_pImpl->allocator.allocateBuffer(m_pImpl->indices.size() * sizeof(uint32_t), BufferType::CPU);
 
 		m_pImpl->allocator.submitData(&m_pImpl->vertexStagingBuffer, m_pImpl->vertices.data(), size, 0);
+		m_pImpl->allocator.submitData(&m_pImpl->indexStagingBuffer, m_pImpl->indices.data(), m_pImpl->indices.size() * sizeof(uint32_t), 0);
 
 		BufferTypeFlags flags = m_pImpl->allocator.getBufferTypes();
 		if(flags & BufferType::GPU)
@@ -159,20 +177,36 @@ namespace Charra
 			m_pImpl->shouldTransfer = true;
 			m_pImpl->vertexDeviceBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::GPU);
 			m_pImpl->allocator.applyForTransfer(&m_pImpl->vertexStagingBuffer, &m_pImpl->vertexDeviceBuffer);
+
+			m_pImpl->indexDeviceBuffer = m_pImpl->allocator.allocateBuffer(m_pImpl->indices.size() * sizeof(uint32_t), BufferType::GPU);
+			m_pImpl->allocator.applyForTransfer(&m_pImpl->indexStagingBuffer, &m_pImpl->indexDeviceBuffer);
 		}
 	}
 
 	Renderer::~Renderer()
 	{
 		vkDeviceWaitIdle(m_pImpl->device.getDevice());
-		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexDeviceBuffer);
 		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexStagingBuffer);
+		m_pImpl->allocator.deallocateBuffer(&m_pImpl->vertexDeviceBuffer);
+
+		m_pImpl->allocator.deallocateBuffer(&m_pImpl->indexStagingBuffer);
+		m_pImpl->allocator.deallocateBuffer(&m_pImpl->indexDeviceBuffer);
 
 		m_pImpl.reset();
 	}
 
 	void Renderer::draw()
 	{
+		// Check for transfers
+
+		// Prepare images for all windows
+
+		// Do drawing for each window
+
+		// Submit command buffers
+
+		// Switch frame value
+ 
 		std::vector<VkSemaphore> renderWaitSemaphores;
 		std::vector<VkPipelineStageFlags> waitStages;
 
@@ -198,7 +232,6 @@ namespace Charra
 			CHARRA_LOG_ERROR(vkQueueSubmit(m_pImpl->device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
 		
-		// For next frame
 		WindowData& window = m_pImpl->windows[0];
 		m_pImpl->windows[0].swapchain.prepareNextImage(&window.imageWaitSemaphore);
 
@@ -230,15 +263,27 @@ namespace Charra
 
 		if(m_pImpl->vertexDeviceBuffer.size != 0)
 		{
-			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexDeviceBuffer.buffer, &m_pImpl->vertexDeviceBuffer.offset);
+			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexDeviceBuffer.buffer,
+								   &m_pImpl->vertexDeviceBuffer.offset);
+
+			vkCmdBindIndexBuffer(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex),
+								 m_pImpl->indexDeviceBuffer.buffer, m_pImpl->indexDeviceBuffer.offset, VK_INDEX_TYPE_UINT32);
 		}
 		else 
 		{
-			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexStagingBuffer.buffer, &m_pImpl->vertexStagingBuffer.offset);
+			vkCmdBindVertexBuffers(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), 0, 1, &m_pImpl->vertexStagingBuffer.buffer,
+								   &m_pImpl->vertexStagingBuffer.offset);
+
+			vkCmdBindIndexBuffer(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), m_pImpl->indexStagingBuffer.buffer, 
+								 m_pImpl->indexStagingBuffer.offset, VK_INDEX_TYPE_UINT32);
 		}
 
 		uint32_t size = m_pImpl->vertices.size() * sizeof(Vertex);
-		vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
+
+		//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
+
+		vkCmdDrawIndexed(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), m_pImpl->indices.size(), 
+						1, 0, 0, 0);
 		 
 		m_pImpl->commandBuffers.endRenderpass(m_pImpl->commandBufferIndex);
 
