@@ -31,14 +31,6 @@ namespace Charra
 		vkDestroySurfaceKHR(m_instanceRef->getInstance(), m_surface, NULL);
 	}
 
-	void Swapchain::recreateSwapchain()
-	{
-		createSwapchain();
-		destroyImages();
-		createImages();
-		m_resized = false;
-	}
-
 	void Swapchain::onInit()
 	{
 		m_surface = Platform::getSurface(m_instanceRef->getInstance());
@@ -120,14 +112,14 @@ namespace Charra
 		createInfo.preTransform = m_surfaceCapabilites.currentTransform;
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = m_presentMode;
-		createInfo.clipped = VK_TRUE; // #TODO this needs more research, and may end up needing to be changed for simulations
+		createInfo.clipped = VK_TRUE;
 		createInfo.oldSwapchain = m_swapchain; // #Resizing will need this
 
 		auto oldSwapchain = m_swapchain;
 
 		vkCreateSwapchainKHR(m_deviceRef->getDevice(), &createInfo, NULL, &m_swapchain);
 
-		if(oldSwapchain == VK_NULL_HANDLE)
+		if(oldSwapchain != VK_NULL_HANDLE)
 		{	
 			vkDestroySwapchainKHR(m_deviceRef->getDevice(), oldSwapchain, NULL);
 		}
@@ -137,6 +129,9 @@ namespace Charra
 	{
 		if(m_resized)
 		{
+			// Destroys the deffered framebuffers that are not in use
+			destroyImages();
+
 			m_defferedImages.clear();
 			m_defferedImageViews.clear();
 			m_defferedFramebuffers.clear();
@@ -145,7 +140,9 @@ namespace Charra
 			m_defferedImageViews.swap(m_imageViews);
 			m_defferedFramebuffers.swap(m_framebuffers);
 			
-			recreateSwapchain();
+			createSwapchain();
+			createImages();
+			m_resized = false;			
 		}
 		if(m_framebufferInvalid)
 		{

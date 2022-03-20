@@ -502,7 +502,6 @@ namespace Charra
 					return 0;
 
 				case WM_KEYDOWN:
-					// TODO this is temporary
 					if (static_cast<InputCode>(wParam) == InputCode::F1_KEY)
 					{
 						DestroyWindow(window);
@@ -577,7 +576,6 @@ namespace Charra
 
 			WNDCLASS wc{};
 			wc.lpfnWndProc   = WindowProc;
-			// TODO verify that instance exists
 			wc.hInstance     = instance;
 			wc.lpszClassName = applicationName;
 

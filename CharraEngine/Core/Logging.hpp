@@ -3,8 +3,7 @@
 #include <string>
 #include <iostream>
 #include <cstdint>
-#include "Platform/Platform.hpp"
-// TODO debug log levels
+#include "Platform/Platform.hpp"\
 
 namespace Charra
 {

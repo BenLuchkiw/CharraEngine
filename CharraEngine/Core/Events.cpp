@@ -78,7 +78,7 @@ namespace Charra
 				}
 				else
 				{
-					// TODO error handling
+					CHARRA_LOG_ERROR(true, "Event callback returned false");
 				}
 			}
 		}

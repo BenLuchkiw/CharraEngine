@@ -7,7 +7,6 @@
 #include <string>
 #include <sstream>
 
-// TODO this is temporary
 #include "Renderer/Renderer.hpp"
 #include "Vulkan/Pipeline.hpp"
 
