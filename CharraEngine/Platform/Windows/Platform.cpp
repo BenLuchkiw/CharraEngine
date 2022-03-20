@@ -228,63 +228,51 @@ namespace Charra
 			{
 				case HTTOP:
 					dimensions.top = cursor.y;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTBOTTOM:
 					dimensions.bottom = cursor.y;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTLEFT:
 					dimensions.left = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTRIGHT:
 					dimensions.right = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
-					//CHARRA_LOG_INFO(true, std::to_string(endX));
 					break;
 				case HTTOPLEFT:
 					dimensions.top = cursor.y;
 					dimensions.left = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTTOPRIGHT:
 					dimensions.top = cursor.y;
 					dimensions.right = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTBOTTOMRIGHT:
 					dimensions.bottom = cursor.y;
 					dimensions.right = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTBOTTOMLEFT:
 					dimensions.bottom = cursor.y;
 					dimensions.left = cursor.x;
-					startX = cursor.x;
-					startY = cursor.y;
 					g_platformData.resizeData.windowDimensions = dimensions;
 					break;
 				case HTCAPTION:
-					dimensions.left -= startX - cursor.x;// - g_platformData.resizeData.moveOffset.x;
+					dimensions.left -= startX - cursor.x;
 					dimensions.right -= startX - cursor.x;
-					dimensions.top -= startY - cursor.y;// - g_platformData.resizeData.moveOffset.y;
+					dimensions.top -= startY - cursor.y;
 					dimensions.bottom -= startY - cursor.y;
 					break;
+			}
+
+			if(dimensions.right <= dimensions.left || dimensions.bottom <= dimensions.top)
+			{
+				return;
 			}
 
 			for(int i = 0; i < g_platformData.windows.size(); i++)
@@ -294,9 +282,22 @@ namespace Charra
 					iVec2 position = {static_cast<uint32_t>(dimensions.left), static_cast<uint32_t>(dimensions.top)};
 					iVec2 size = {static_cast<uint32_t>(dimensions.right - dimensions.left), static_cast<uint32_t>(dimensions.bottom - dimensions.top)};
 
-					if(size.width < 50 || size.height < 50 || dimensions.right <= dimensions.left || dimensions.bottom <= dimensions.top)
+					if(size.width < 50)
 					{
-						return;
+						if(startX < cursor.x)
+						{
+							position.x -= 50 - size.width;
+						}
+						size.width = 50;
+					}
+
+					if(size.height < 50)
+					{
+						if(startY < cursor.y)
+						{
+							position.y -= 50 - size.height;
+						}
+						size.height = 50;
 					}
 
 					moveWindow(i, position, size);
