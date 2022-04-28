@@ -7,14 +7,6 @@ ${CMAKE_CURRENT_LIST_DIR}/Core/Events.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.cpp
 
-${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/AbstractWidget.hpp
-${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Button.hpp
-${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Taskbar.hpp
-${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Window.hpp
-
-${CMAKE_CURRENT_LIST_DIR}/GUI/GUI.hpp
-${CMAKE_CURRENT_LIST_DIR}/GUI/GUI.cpp
-
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.cpp
 
