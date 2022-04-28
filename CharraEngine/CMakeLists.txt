@@ -2,17 +2,21 @@ set(CHARRA_SOURCE
 
 ${CMAKE_CURRENT_LIST_DIR}/Core/Application.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Application.cpp
-
 ${CMAKE_CURRENT_LIST_DIR}/Core/Events.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Events.cpp
-
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.cpp
 
+${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/AbstractWidget.hpp
+${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Button.hpp
+${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Taskbar.hpp
+${CMAKE_CURRENT_LIST_DIR}/GUI/Widgets/Window.hpp
+
+${CMAKE_CURRENT_LIST_DIR}/GUI/GUI.hpp
+${CMAKE_CURRENT_LIST_DIR}/GUI/GUI.cpp
+
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.cpp
-${CMAKE_CURRENT_LIST_DIR}/Renderer/GUI.hpp
-${CMAKE_CURRENT_LIST_DIR}/Renderer/GUI.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Buffer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Allocator.hpp

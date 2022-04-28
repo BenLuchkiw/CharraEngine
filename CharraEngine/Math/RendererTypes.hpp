@@ -10,5 +10,10 @@ namespace Charra
         fVec3 position;
         fVec4 colour;       
     };
+
+    struct GUIVertex
+    {
+        fVec3 position;
+    };
     
 }
