@@ -18,6 +18,13 @@ ${WINDOWS_PLATFORM_SOURCES}
 
 add_executable(CharraEngine WIN32 ${ALL_SOURCES})
 
+# For finding possible errors in the sea of warnings
+#set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} 
+#/W4
+#/wd4201
+#/wd4267
+#")
+
 target_link_libraries(CharraEngine "${CMAKE_CURRENT_LIST_DIR}\\Libs\\vulkan\\Lib\\vulkan-1.lib")
 include_directories("Libs\\vulkan\\Include")
 include_directories("CharraEngine")

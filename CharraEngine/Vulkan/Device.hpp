@@ -9,7 +9,7 @@ namespace Charra
 	class Device
 	{
 	public:
-		Device(Instance* instanceRef);
+		Device(Instance& instanceRef);
 		~Device();
 
 
@@ -38,7 +38,7 @@ namespace Charra
 		void setQueues();
 
 	private: // Members
-		Instance* m_instanceRef;
+		Instance& m_instanceRef;
 
 		VkDevice m_device;
 		VkPhysicalDevice m_physicalDevice;

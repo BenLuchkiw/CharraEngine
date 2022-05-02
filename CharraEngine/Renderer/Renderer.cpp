@@ -15,8 +15,7 @@
 #include "Vulkan/Swapchain.hpp"
 #include "Vulkan/Renderpass.hpp"
 
-// For MaterialData
-#include "Vulkan/Pipeline.hpp"
+#include "Material.hpp"
 
 #include "vulkan/vulkan.h"
 
@@ -24,18 +23,6 @@
 
 namespace Charra
 {
-	struct MaterialData
-	{
-		GraphicsPipeline pipeline;
-
-		MaterialData(Device* deviceRef, Renderpass* renderpassRef,
-		 VkVertexInputBindingDescription vertexBindingAttributes,
-		 std::vector<VkVertexInputAttributeDescription> attributeDescription)
-		:pipeline(deviceRef, renderpassRef, "SimpleVertex.spv", "SimpleFragment.spv",
-		 vertexBindingAttributes, attributeDescription)
-		{}
-	};
-
 	struct WindowData
 	{
 		iVec2 windowSize;
@@ -46,18 +33,18 @@ namespace Charra
 
 		// TODO this should not be here
 		VkVertexInputBindingDescription vertexBindingAttributes{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX};
-		std::vector<VkVertexInputAttributeDescription> attributeDescription = {
+		std::vector<VkVertexInputAttributeDescription> attributeDescriptions = {
 			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)},
 			{1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, colour)}
 		};
 
-		MaterialData material;
+		Material material;
 
-		WindowData(iVec2 size, const std::string& name, Device* deviceRef, Instance* instanceRef)
-		:windowSize(size), windowName(name), swapchain(deviceRef, instanceRef), 
+		WindowData(iVec2 size, const std::string& name, Device& deviceRef, Instance& instanceRef)
+		:windowSize(size), windowName(name), swapchain(deviceRef, instanceRef),
 		 renderpass(deviceRef, swapchain.getSurfaceFormat()),
 		 imageWaitSemaphore(deviceRef),
-		 material(deviceRef, &renderpass, vertexBindingAttributes, attributeDescription)
+		 material(deviceRef, renderpass, vertexBindingAttributes, attributeDescriptions, "SimpleVertex", "SimpleFragment")
 		{
 			swapchain.passRenderpass(&renderpass);
 		}
@@ -96,19 +83,19 @@ namespace Charra
 
 		RendererImplData(iVec2 windowSize, const std::string& windowName, Events* eventHandlerRef)
 		:instance(),
-		 device(&instance),
-		 transferFinishedSemaphore(&device),
-		 renderFinishSempahore(&device),
-		 renderFinishedFence(&device),
-		 commandBuffers(&device, 2, CommandBufferType::GRAPHICS),
+		 device(instance),
+		 transferFinishedSemaphore(device),
+		 renderFinishSempahore(device),
+		 renderFinishedFence(device),
+		 commandBuffers(device, 2, CommandBufferType::GRAPHICS),
 		 eventHandlerRef(eventHandlerRef),
-		 allocator(&device)
+		 allocator(device)
 		{
 			// TODO max size
 			windows.reserve(20);
 
 			Platform::createWindow(windowName, windowSize);
-			windows.emplace_back(windowSize, windowName, &device, &instance);
+			windows.emplace_back(windowSize, windowName, device, instance);
 			eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT,
 			 										windows[0].swapchain.resizeCallback, &windows[0].swapchain);
 		}
@@ -121,10 +108,10 @@ namespace Charra
 
 	Renderer::Renderer(const std::string& mainWindowName, Events* eventHandler)
 	{
-		m_pImpl  = std::make_unique<RendererImplData>(iVec2(400, 400), mainWindowName, eventHandler);
+		m_pImpl = std::make_unique<RendererImplData>(iVec2(400, 400), mainWindowName, eventHandler);
 
 		VkExtent2D extent = m_pImpl->windows[0].swapchain.getPixelExtent();
-		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, extent.width, 0, extent.height);
+		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, static_cast<float>(extent.width), 0, static_cast<float>(extent.height));
 
 		Vertex point;
 		point.position.x = 0.0f;
@@ -168,8 +155,8 @@ namespace Charra
 		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::CPU);
 		m_pImpl->indexStagingBuffer = m_pImpl->allocator.allocateBuffer(m_pImpl->indices.size() * sizeof(uint32_t), BufferType::CPU);
 
-		m_pImpl->allocator.submitData(&m_pImpl->vertexStagingBuffer, m_pImpl->vertices.data(), size, 0);
-		m_pImpl->allocator.submitData(&m_pImpl->indexStagingBuffer, m_pImpl->indices.data(), m_pImpl->indices.size() * sizeof(uint32_t), 0);
+		m_pImpl->allocator.submitData(m_pImpl->vertexStagingBuffer, m_pImpl->vertices.data(), size, 0);
+		m_pImpl->allocator.submitData(m_pImpl->indexStagingBuffer, m_pImpl->indices.data(), m_pImpl->indices.size() * sizeof(uint32_t), 0);
 
 		BufferTypeFlags flags = m_pImpl->allocator.getBufferTypes();
 		if(flags & BufferType::GPU)
@@ -241,7 +228,7 @@ namespace Charra
 		// I will record the main window now
 		m_pImpl->commandBuffers.beginRenderpass(window.renderpass.getRenderPass(),
 												window.swapchain.getFramebuffer(), 
-												window.material.pipeline.getPipeline(),
+												window.material.getPipeline().getPipeline(),
 												window.swapchain.getPixelExtent(),
 												m_pImpl->commandBufferIndex);
 
@@ -253,8 +240,8 @@ namespace Charra
 		VkViewport viewportCreateInfo{};
 		viewportCreateInfo.x = 0;
 		viewportCreateInfo.y = 0;
-		viewportCreateInfo.width = scissor.extent.width;
-		viewportCreateInfo.height = scissor.extent.height;
+		viewportCreateInfo.width = static_cast<float>(scissor.extent.width);
+		viewportCreateInfo.height = static_cast<float>(scissor.extent.height);
 		viewportCreateInfo.minDepth = 0.0f;
 		viewportCreateInfo.maxDepth = 1.0f;
 
@@ -278,12 +265,9 @@ namespace Charra
 								 m_pImpl->indexStagingBuffer.offset, VK_INDEX_TYPE_UINT32);
 		}
 
-		uint32_t size = m_pImpl->vertices.size() * sizeof(Vertex);
-
 		//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
 
-		vkCmdDrawIndexed(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), m_pImpl->indices.size(), 
-						1, 0, 0, 0);
+		vkCmdDrawIndexed(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), m_pImpl->indices.size(), 1, 0, 0, 0);
 		 
 		m_pImpl->commandBuffers.endRenderpass(m_pImpl->commandBufferIndex);
 
@@ -332,8 +316,8 @@ namespace Charra
 		presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
 		presentInfo.pResults;
 
-		// Check this result for resizing
-		VkResult result = vkQueuePresentKHR(m_pImpl->device.getGraphicsQueue(), &presentInfo);
+		// TODO: Check this result for resizing
+		vkQueuePresentKHR(m_pImpl->device.getGraphicsQueue(), &presentInfo);
 
 		// This flips the index between 0 and 1 without branching
 		m_pImpl->commandBufferIndex = 1 - m_pImpl->commandBufferIndex;

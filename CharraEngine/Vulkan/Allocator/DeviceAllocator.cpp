@@ -4,7 +4,7 @@
 
 namespace Charra
 {
-	DeviceAllocator::DeviceAllocator(Device* deviceRef, uint32_t deviceTypeIndex, uint32_t amd256TypeIndex)
+	DeviceAllocator::DeviceAllocator(Device& deviceRef, uint32_t deviceTypeIndex, uint32_t amd256TypeIndex)
 	: m_deviceRef(deviceRef), m_deviceTypeIndex(deviceTypeIndex), m_amd256TypeIndex(amd256TypeIndex)
 	{
 
@@ -20,7 +20,7 @@ namespace Charra
 	{
 		// This assumes worst case alignment, will get updated later
 		VkDeviceSize alignedSize = ((size + (256 - 1)) & ~(256 - 1));
-		int freeSpaceIndex;
+		int freeSpaceIndex = 0;
 		DevicePage* selectedPage = nullptr;
 
 		for(auto& page : m_devicePages)
@@ -281,10 +281,10 @@ namespace Charra
 		{
 			Amd256Page page{};
 		
-			vkCreateBuffer(m_deviceRef->getDevice(), &bufferCreateInfo, NULL, &page.buffer);
+			vkCreateBuffer(m_deviceRef.getDevice(), &bufferCreateInfo, NULL, &page.buffer);
 	
 			VkMemoryRequirements memRequirements;
-			vkGetBufferMemoryRequirements(m_deviceRef->getDevice(), page.buffer, &memRequirements);
+			vkGetBufferMemoryRequirements(m_deviceRef.getDevice(), page.buffer, &memRequirements);
 	
 			page.size = bufferCreateInfo.size;
 			page.freeBytes = page.size;
@@ -297,10 +297,10 @@ namespace Charra
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = m_amd256TypeIndex;
 	
-			vkAllocateMemory(m_deviceRef->getDevice(), &allocInfo, NULL, &page.memory);
-			vkBindBufferMemory(m_deviceRef->getDevice(), page.buffer, page.memory, 0);
+			vkAllocateMemory(m_deviceRef.getDevice(), &allocInfo, NULL, &page.memory);
+			vkBindBufferMemory(m_deviceRef.getDevice(), page.buffer, page.memory, 0);
 
-			vkMapMemory(m_deviceRef->getDevice(), page.memory, 0, page.size, 0, &page.alloc);
+			vkMapMemory(m_deviceRef.getDevice(), page.memory, 0, page.size, 0, &page.alloc);
 	
 			m_amd256Pages.push_back(page);
 			iVec2 space(0, static_cast<uint32_t>(allocInfo.allocationSize));
@@ -310,10 +310,10 @@ namespace Charra
 		{
 			DevicePage page{};
 		
-			vkCreateBuffer(m_deviceRef->getDevice(), &bufferCreateInfo, NULL, &page.buffer);
+			vkCreateBuffer(m_deviceRef.getDevice(), &bufferCreateInfo, NULL, &page.buffer);
 	
 			VkMemoryRequirements memRequirements;
-			vkGetBufferMemoryRequirements(m_deviceRef->getDevice(), page.buffer, &memRequirements);
+			vkGetBufferMemoryRequirements(m_deviceRef.getDevice(), page.buffer, &memRequirements);
 	
 			page.size = bufferCreateInfo.size;
 			page.freeBytes = page.size;
@@ -325,8 +325,8 @@ namespace Charra
 			allocInfo.allocationSize = memRequirements.size;
 			allocInfo.memoryTypeIndex = m_deviceTypeIndex;
 	
-			vkAllocateMemory(m_deviceRef->getDevice(), &allocInfo, NULL, &page.memory);
-			vkBindBufferMemory(m_deviceRef->getDevice(), page.buffer, page.memory, 0);
+			vkAllocateMemory(m_deviceRef.getDevice(), &allocInfo, NULL, &page.memory);
+			vkBindBufferMemory(m_deviceRef.getDevice(), page.buffer, page.memory, 0);
 	
 			m_devicePages.push_back(page);
 			iVec2 space(0, static_cast<uint32_t>(allocInfo.allocationSize));
@@ -340,8 +340,8 @@ namespace Charra
 		{
 			auto& page = m_amd256Pages[pageIndex];
 			
-			vkDestroyBuffer(m_deviceRef->getDevice(), page.buffer, NULL);
-			vkFreeMemory(m_deviceRef->getDevice(), page.memory, NULL);
+			vkDestroyBuffer(m_deviceRef.getDevice(), page.buffer, NULL);
+			vkFreeMemory(m_deviceRef.getDevice(), page.memory, NULL);
 
 			m_amd256Pages.erase(m_amd256Pages.begin() + pageIndex);
 		}
@@ -349,8 +349,8 @@ namespace Charra
 		{
 			auto& page = m_devicePages[pageIndex];
 
-			vkDestroyBuffer(m_deviceRef->getDevice(), page.buffer, NULL);
-			vkFreeMemory(m_deviceRef->getDevice(), page.memory, NULL);
+			vkDestroyBuffer(m_deviceRef.getDevice(), page.buffer, NULL);
+			vkFreeMemory(m_deviceRef.getDevice(), page.memory, NULL);
 
 			m_devicePages.erase(m_devicePages.begin() + pageIndex);
 		}

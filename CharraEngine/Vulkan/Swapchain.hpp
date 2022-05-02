@@ -15,7 +15,7 @@ namespace Charra
 	class Swapchain
 	{
 	public:
-		Swapchain(Device* deviceRef, Instance* instanceRef);
+		Swapchain(Device& deviceRef, Instance& instanceRef);
 		~Swapchain();
 
 		void passRenderpass(Renderpass* renderpassRef) { m_renderpassRef = renderpassRef; }
@@ -48,9 +48,9 @@ namespace Charra
 		void createImages();
 
 	private: // Members
-		Device* m_deviceRef;
-		Instance* m_instanceRef;
-		Renderpass* m_renderpassRef;
+		Device& m_deviceRef;
+		Instance& m_instanceRef;
+		Renderpass* m_renderpassRef = nullptr;
 
 		VkSurfaceKHR m_surface;
 		VkSurfaceCapabilitiesKHR m_surfaceCapabilites;

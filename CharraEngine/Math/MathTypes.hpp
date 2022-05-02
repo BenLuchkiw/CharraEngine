@@ -59,7 +59,7 @@ namespace Charra
 		iVec3(uint32_t a, iVec2 vec) :x(a), y(vec.y), z(vec.x) {}
 
 		iVec3(uint32_t a, uint32_t b, uint32_t c) :x(a), y(b), z(c) {}
-		iVec3() :x(0.0f), y(0.0f), z(0.0f) {}
+		iVec3() :x(0), y(0), z(0) {}
 
 		void operator=(const iVec3& val) { x=val.x, y=val.y, z=val.z; }
 		uint32_t& operator[](size_t size) { return elements[size]; }
@@ -110,7 +110,7 @@ namespace Charra
 
 		// Regualar creation
 		iVec4(uint32_t a, uint32_t b, uint32_t c, uint32_t d) :x(a), y(b), z(c), w(d) {}
-		iVec4() :x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
+		iVec4() :x(0), y(0), z(0), w(0) {}
 
 		void operator=(const iVec4& val) { x=val.x, y=val.y, z=val.z, w=val.w; }
 		uint32_t& operator[](size_t size) { return elements[size]; }

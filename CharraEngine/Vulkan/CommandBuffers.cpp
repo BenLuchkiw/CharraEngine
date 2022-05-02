@@ -7,7 +7,7 @@
 
 namespace Charra
 {
-	CommandBuffers::CommandBuffers(Device* deviceRef, uint32_t bufferCount, CommandBufferType type)
+	CommandBuffers::CommandBuffers(Device& deviceRef, uint32_t bufferCount, CommandBufferType type)
 		: m_deviceRef(deviceRef),
 		m_commandPool(VK_NULL_HANDLE),
 		m_commandBuffers(bufferCount),
@@ -19,7 +19,7 @@ namespace Charra
 
 	CommandBuffers::~CommandBuffers()
 	{
-		vkDestroyCommandPool(m_deviceRef->getDevice(), m_commandPool, NULL);
+		vkDestroyCommandPool(m_deviceRef.getDevice(), m_commandPool, NULL);
 	}
 
 	void CommandBuffers::beginRecording(uint32_t bufferIndex)
@@ -65,8 +65,8 @@ namespace Charra
 		VkViewport viewport{};
 		viewport.x = 0;
 		viewport.y = 0;
-		viewport.width = extent.width;
-		viewport.height = extent.height;
+		viewport.width = static_cast<float>(extent.width);
+		viewport.height = static_cast<float>(extent.height);
 		viewport.minDepth = 1.0f;
 		viewport.maxDepth = 0.0f;
 		vkCmdSetViewport(m_commandBuffers[bufferIndex], 0, 1, &viewport);
@@ -87,14 +87,14 @@ namespace Charra
 		commandPoolCreateInfo.flags = VK_COMMAND_POOL_CREATE_RESET_COMMAND_BUFFER_BIT;
 		if(type == CommandBufferType::GRAPHICS)
 		{
-			commandPoolCreateInfo.queueFamilyIndex = m_deviceRef->getGraphicsQueueIndex();
+			commandPoolCreateInfo.queueFamilyIndex = m_deviceRef.getGraphicsQueueIndex();
 		}
 		else if(type == CommandBufferType::TRANSFER)
 		{
-			commandPoolCreateInfo.queueFamilyIndex = m_deviceRef->getTransferQueueIndex();
+			commandPoolCreateInfo.queueFamilyIndex = m_deviceRef.getTransferQueueIndex();
 		}
 
-		CHARRA_LOG_ERROR(vkCreateCommandPool(m_deviceRef->getDevice(), &commandPoolCreateInfo, NULL, &m_commandPool) != VK_SUCCESS, "Vulkan was unable to create command pool");
+		CHARRA_LOG_ERROR(vkCreateCommandPool(m_deviceRef.getDevice(), &commandPoolCreateInfo, NULL, &m_commandPool) != VK_SUCCESS, "Vulkan was unable to create command pool");
 	}
 
 	void CommandBuffers::createCommandBuffers()
@@ -106,6 +106,6 @@ namespace Charra
 		commandBufferAllocateInfo.commandBufferCount = m_bufferCount;
 		commandBufferAllocateInfo.commandPool = m_commandPool;
 		
-		CHARRA_LOG_ERROR(vkAllocateCommandBuffers(m_deviceRef->getDevice(), &commandBufferAllocateInfo, m_commandBuffers.data()) != VK_SUCCESS, "Vulkan could not allocate command buffers");
+		CHARRA_LOG_ERROR(vkAllocateCommandBuffers(m_deviceRef.getDevice(), &commandBufferAllocateInfo, m_commandBuffers.data()) != VK_SUCCESS, "Vulkan could not allocate command buffers");
 	}
 }

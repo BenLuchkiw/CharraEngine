@@ -5,7 +5,7 @@
 
 namespace Charra
 {
-	Swapchain::Swapchain(Device* deviceRef, Instance* instanceRef)
+	Swapchain::Swapchain(Device& deviceRef, Instance& instanceRef)
 		: m_deviceRef(deviceRef),
 		m_instanceRef(instanceRef),
 		m_surfaceCapabilites(),
@@ -23,24 +23,24 @@ namespace Charra
 		destroyImages();
 		for (int i = 0; i < m_framebuffers.size(); i++)
 		{
-			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_framebuffers[i], NULL);
-			vkDestroyImageView(m_deviceRef->getDevice(), m_imageViews[i], NULL);
+			vkDestroyFramebuffer(m_deviceRef.getDevice(), m_framebuffers[i], NULL);
+			vkDestroyImageView(m_deviceRef.getDevice(), m_imageViews[i], NULL);
 		}
 
-		vkDestroySwapchainKHR(m_deviceRef->getDevice(), m_swapchain, NULL);
-		vkDestroySurfaceKHR(m_instanceRef->getInstance(), m_surface, NULL);
+		vkDestroySwapchainKHR(m_deviceRef.getDevice(), m_swapchain, NULL);
+		vkDestroySurfaceKHR(m_instanceRef.getInstance(), m_surface, NULL);
 	}
 
 	void Swapchain::onInit()
 	{
-		m_surface = Platform::getSurface(m_instanceRef->getInstance());
+		m_surface = Platform::getSurface(m_instanceRef.getInstance());
 		// Find out if the physical device supports vulkan swapchains
 		VkBool32 supported;
-		vkGetPhysicalDeviceSurfaceSupportKHR(m_deviceRef->getPhysicalDevice(), m_deviceRef->getGraphicsQueueIndex(), m_surface, &supported);
+		vkGetPhysicalDeviceSurfaceSupportKHR(m_deviceRef.getPhysicalDevice(), m_deviceRef.getGraphicsQueueIndex(), m_surface, &supported);
 		CHARRA_LOG_ERROR(!supported, "The selected graphics device does not have surface support");
 
 		// Find the surface capabilities
-		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_deviceRef->getPhysicalDevice(), m_surface, &m_surfaceCapabilites);
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_deviceRef.getPhysicalDevice(), m_surface, &m_surfaceCapabilites);
 
 		// Decide image count
 		if (m_surfaceCapabilites.maxImageCount > 0 && ((m_surfaceCapabilites.minImageCount + 1) <= m_surfaceCapabilites.maxImageCount))
@@ -56,9 +56,9 @@ namespace Charra
 		// Select the image format
 
 		uint32_t formatCount;
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_deviceRef->getPhysicalDevice(), m_surface, &formatCount, NULL);
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_deviceRef.getPhysicalDevice(), m_surface, &formatCount, NULL);
 		std::vector<VkSurfaceFormatKHR> surfaceFormats(formatCount);
-		vkGetPhysicalDeviceSurfaceFormatsKHR(m_deviceRef->getPhysicalDevice(), m_surface, &formatCount, surfaceFormats.data());
+		vkGetPhysicalDeviceSurfaceFormatsKHR(m_deviceRef.getPhysicalDevice(), m_surface, &formatCount, surfaceFormats.data());
 
 		m_surfaceFormat = surfaceFormats[0]; // Add a default surface format
 		for (const auto& format : surfaceFormats)
@@ -77,9 +77,9 @@ namespace Charra
 		// Select the present mode
 
 		uint32_t presentModeCount;
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_deviceRef->getPhysicalDevice(), m_surface, &presentModeCount, NULL);
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_deviceRef.getPhysicalDevice(), m_surface, &presentModeCount, NULL);
 		std::vector<VkPresentModeKHR> presentModes(presentModeCount);
-		vkGetPhysicalDeviceSurfacePresentModesKHR(m_deviceRef->getPhysicalDevice(), m_surface, &presentModeCount, presentModes.data());
+		vkGetPhysicalDeviceSurfacePresentModesKHR(m_deviceRef.getPhysicalDevice(), m_surface, &presentModeCount, presentModes.data());
 
 		m_presentMode = VK_PRESENT_MODE_FIFO_KHR;
 		//for (const auto& presentMode : presentModes)
@@ -117,11 +117,11 @@ namespace Charra
 
 		auto oldSwapchain = m_swapchain;
 
-		vkCreateSwapchainKHR(m_deviceRef->getDevice(), &createInfo, NULL, &m_swapchain);
+		vkCreateSwapchainKHR(m_deviceRef.getDevice(), &createInfo, NULL, &m_swapchain);
 
 		if(oldSwapchain != VK_NULL_HANDLE)
 		{	
-			vkDestroySwapchainKHR(m_deviceRef->getDevice(), oldSwapchain, NULL);
+			vkDestroySwapchainKHR(m_deviceRef.getDevice(), oldSwapchain, NULL);
 		}
 	}
 
@@ -149,7 +149,7 @@ namespace Charra
 			m_framebufferInvalid = false;
 			createImages();
 		}
-		vkAcquireNextImageKHR(m_deviceRef->getDevice(), m_swapchain, UINT32_MAX, waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex);
+		vkAcquireNextImageKHR(m_deviceRef.getDevice(), m_swapchain, UINT32_MAX, waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex);
 	}
 
 	bool Swapchain::resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData)
@@ -168,10 +168,10 @@ namespace Charra
 
 	void Swapchain::createImages()
 	{
-		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchain, &m_imageCount, NULL);
+		vkGetSwapchainImagesKHR(m_deviceRef.getDevice(), m_swapchain, &m_imageCount, NULL);
 		CHARRA_LOG_ERROR(m_imageCount == 0, "No swapchain images were available");
 		m_images.resize(m_imageCount);
-		vkGetSwapchainImagesKHR(m_deviceRef->getDevice(), m_swapchain, &m_imageCount, m_images.data());
+		vkGetSwapchainImagesKHR(m_deviceRef.getDevice(), m_swapchain, &m_imageCount, m_images.data());
 		
 		VkImageViewCreateInfo createInfo{};
 		createInfo.sType = VK_STRUCTURE_TYPE_IMAGE_VIEW_CREATE_INFO;
@@ -193,7 +193,7 @@ namespace Charra
 		for (int i = 0; i < m_imageCount; i++)
 		{
 			createInfo.image = m_images[i];
-			CHARRA_LOG_ERROR(vkCreateImageView(m_deviceRef->getDevice(), &createInfo, NULL, &m_imageViews[i]) != VK_SUCCESS, "Vulkan failed to create image view");
+			CHARRA_LOG_ERROR(vkCreateImageView(m_deviceRef.getDevice(), &createInfo, NULL, &m_imageViews[i]) != VK_SUCCESS, "Vulkan failed to create image view");
 		}
 
 		m_framebuffers.resize(m_imageCount);
@@ -213,7 +213,7 @@ namespace Charra
 		{
 			const VkImageView attachment[] = { m_imageViews.at(i) };
 			framebufferCreateInfo.pAttachments = attachment;
-			CHARRA_LOG_ERROR(VK_SUCCESS != vkCreateFramebuffer(m_deviceRef->getDevice(), &framebufferCreateInfo, NULL, &m_framebuffers[i]), "Vulkan could not make a framebuffer");
+			CHARRA_LOG_ERROR(VK_SUCCESS != vkCreateFramebuffer(m_deviceRef.getDevice(), &framebufferCreateInfo, NULL, &m_framebuffers[i]), "Vulkan could not make a framebuffer");
 		}
 
 	}
@@ -222,8 +222,8 @@ namespace Charra
 	{
 		for (int i = 0; i < m_defferedFramebuffers.size(); i++)
 		{
-			vkDestroyFramebuffer(m_deviceRef->getDevice(), m_defferedFramebuffers[i], NULL);
-			vkDestroyImageView(m_deviceRef->getDevice(), m_defferedImageViews[i], NULL);
+			vkDestroyFramebuffer(m_deviceRef.getDevice(), m_defferedFramebuffers[i], NULL);
+			vkDestroyImageView(m_deviceRef.getDevice(), m_defferedImageViews[i], NULL);
 		}
 	}
 };

@@ -10,7 +10,7 @@ namespace Charra
 	class Renderpass
 	{
 	public:
-		Renderpass(Device* deviceRef, VkFormat format);
+		Renderpass(Device& deviceRef, VkFormat format);
 		~Renderpass();
 
 		void createRenderpass();
@@ -20,7 +20,7 @@ namespace Charra
 	private: // Methods
 
 	private: // Members
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 
 		VkRenderPass m_renderPass;
 		VkFormat m_format;

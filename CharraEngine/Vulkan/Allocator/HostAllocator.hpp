@@ -14,7 +14,7 @@ namespace Charra
 	class HostAllocator
 	{
 	public:
-		HostAllocator(Device* deviceRef, uint32_t memTypeIndex);
+		HostAllocator(Device& deviceRef, uint32_t memTypeIndex);
 		~HostAllocator();
 
 		void alloc(VkDeviceMemory* memory, VkDeviceSize size, VkBuffer* buffer, VkDeviceSize* offsetIntoBuffer, void** pMappedData);
@@ -41,7 +41,7 @@ namespace Charra
 			std::vector<iVec2> m_freeSpaces;
 		};
 
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 
 		uint32_t m_minPageSize = 64 * 1024 * 1024; // 64MiB
 

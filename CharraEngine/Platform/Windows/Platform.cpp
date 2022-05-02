@@ -137,14 +137,14 @@ namespace Charra
 		static void moveWindow(uint32_t windowIndex, iVec2 position, iVec2 size)
 		{
 			//MoveWindow(g_platformData.windows[windowIndex], position.x, position.y, size.width, size.height, false);
-			HRESULT result = SetWindowPos(g_platformData.windows[windowIndex], 0, position.x, position.y, size.width, size.height, SWP_DEFERERASE | SWP_NOZORDER | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING);
+			SetWindowPos(g_platformData.windows[windowIndex], 0, position.x, position.y, size.width, size.height, SWP_DEFERERASE | SWP_NOZORDER | SWP_NOCOPYBITS | SWP_NOREDRAW | SWP_NOSENDCHANGING);
 			
 		}
 
-		void fullscreen(int windowIndex, bool fullscreen)
-		{
-			// TODO
-		}
+		//void fullscreen(int windowIndex, bool fullscreen)
+		//{
+		//	// TODO
+		//}
 
 		void pollEvents()
 		{
@@ -165,7 +165,7 @@ namespace Charra
 		{
 
 			HANDLE consoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
-			WORD windowsColourCode;
+			WORD windowsColourCode = NULL;
 			switch(colour)
 			{
 				case ConsoleColours::RED:
@@ -389,7 +389,6 @@ namespace Charra
 			uint32_t mouseX;
 			uint32_t mouseY;
 			iVec2 newSize(0, 0);
-			uint32_t result = 0;
 			LRESULT hitResult;
 			POINT cursorPos;
 

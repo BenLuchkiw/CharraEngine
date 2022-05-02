@@ -7,7 +7,7 @@
 
 namespace Charra
 {
-	Device::Device(Instance* instanceRef)
+	Device::Device(Instance& instanceRef)
 		: m_instanceRef(instanceRef),
 		m_device(VK_NULL_HANDLE),
 		m_physicalDevice(VK_NULL_HANDLE),
@@ -33,10 +33,10 @@ namespace Charra
 	{
 		// Finding a list of physical devices
 		uint32_t deviceCount;
-		vkEnumeratePhysicalDevices(m_instanceRef->getInstance(), &deviceCount, NULL);
+		vkEnumeratePhysicalDevices(m_instanceRef.getInstance(), &deviceCount, NULL);
 		CHARRA_LOG_ERROR(deviceCount == 0, "Vulkan failed to detect a GPU");
 		std::vector<VkPhysicalDevice> devices(deviceCount);
-		vkEnumeratePhysicalDevices(m_instanceRef->getInstance(), &deviceCount, devices.data());
+		vkEnumeratePhysicalDevices(m_instanceRef.getInstance(), &deviceCount, devices.data());
 
 		// Find which physical device is most suitable
 		int winningPoints = 0;
@@ -58,7 +58,6 @@ namespace Charra
 			currentPoints = 0;
 		}
 
-		uint32_t queueCount = 0;
 		std::vector<VkQueueFamilyProperties> queueProperties;
 		// Graphics = 1, compute = 2, transfer = 4
 		m_physicalDevice = devices[winningIndex];

@@ -11,7 +11,7 @@ namespace Charra
 	class Images
 	{
 	public:
-		Images(Device* deviceRef, Swapchain* swapchainRef, Renderpass* renderpassRef);
+		Images(Device& deviceRef, Swapchain& swapchainRef, Renderpass& renderpassRef);
 		~Images();
 
 		inline uint32_t getImageCount() { return m_imageCount; }
@@ -27,9 +27,9 @@ namespace Charra
 		void destroy();
 
 	private: // Members
-		Device* m_deviceRef;
-		Swapchain* m_swapchainRef;
-		Renderpass* m_renderpassRef;
+		Device& m_deviceRef;
+		Swapchain& m_swapchainRef;
+		Renderpass& m_renderpassRef;
 
 		uint32_t m_imageCount;
 

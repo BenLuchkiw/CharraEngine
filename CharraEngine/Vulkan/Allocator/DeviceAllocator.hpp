@@ -15,7 +15,7 @@ namespace Charra
 	class DeviceAllocator
 	{
 	public:
-		DeviceAllocator(Device* deviceRef, uint32_t deviceTypeIndex, uint32_t amd256TypeIndex);
+		DeviceAllocator(Device& deviceRef, uint32_t deviceTypeIndex, uint32_t amd256TypeIndex);
 		~DeviceAllocator();
 
 		void alloc(VkDeviceSize size, VkDeviceSize* pOffsetIntoBuffer, VkBuffer* buffer);
@@ -61,7 +61,7 @@ namespace Charra
 			std::vector<iVec2> m_freeSpaces;
 		};
 
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 		
 		uint32_t m_deviceTypeIndex;
 		uint32_t m_amd256TypeIndex;

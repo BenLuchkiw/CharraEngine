@@ -21,7 +21,7 @@ namespace Charra
 	class Shader
 	{
 	public:
-		Shader(Device* deviceRef, const std::string& filename, ShaderType shaderType);
+		Shader(Device& deviceRef, const std::string& filename, ShaderType shaderType);
 		~Shader();
 
 		void createShader(const std::string& filename);
@@ -30,7 +30,7 @@ namespace Charra
 	private: // Methods
 
 	private: // Members
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 		VkShaderModule m_shaderModule = VK_NULL_HANDLE;
 
 		ShaderType m_shaderType;

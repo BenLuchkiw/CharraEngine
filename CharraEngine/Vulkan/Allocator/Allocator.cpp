@@ -4,10 +4,10 @@
 
 namespace Charra
 {
-	Allocator::Allocator(Device* deviceRef)
+	Allocator::Allocator(Device& deviceRef)
 	: m_deviceRef(deviceRef), m_commandBuffers(deviceRef, 1, CommandBufferType::TRANSFER), m_hostAllocator(nullptr), m_deviceAllocator(nullptr)
 	{
-		if(m_deviceRef->getPhysicalDeviceProperties()->deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
+		if(m_deviceRef.getPhysicalDeviceProperties()->deviceType == VK_PHYSICAL_DEVICE_TYPE_INTEGRATED_GPU)
 		{
 			VkMemoryPropertyFlags flags;
 
@@ -115,23 +115,23 @@ namespace Charra
 
 	}
 
-	void Allocator::submitData(Buffer* buffer, void* data, size_t bytes, size_t offset)
+	void Allocator::submitData(Buffer& buffer, void* data, size_t bytes, size_t offset)
 	{
 		char* ptr = static_cast<char*>(data);
 		*ptr += offset;
 
-		memcpy(buffer->data, ptr, bytes);
+		memcpy(buffer.data, ptr, bytes);
 
 		VkMappedMemoryRange range;
 		range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
 		range.pNext;
 		range.size = bytes;
-		range.offset = buffer->offset;
-		range.memory = buffer->memory;
+		range.offset = buffer.offset;
+		range.memory = buffer.memory;
 
 		if(!m_hostCoherant)
 		{
-			vkFlushMappedMemoryRanges(m_deviceRef->getDevice(), 1, &range);
+			vkFlushMappedMemoryRanges(m_deviceRef.getDevice(), 1, &range);
 		}
 	}
 
@@ -228,7 +228,7 @@ namespace Charra
 	uint32_t Allocator::findType(VkMemoryPropertyFlags flags)
 	{
 		VkPhysicalDeviceMemoryProperties memProperties;
-		vkGetPhysicalDeviceMemoryProperties(m_deviceRef->getPhysicalDevice(), &memProperties);
+		vkGetPhysicalDeviceMemoryProperties(m_deviceRef.getPhysicalDevice(), &memProperties);
 		
 		uint32_t bestIndex = UINT32_MAX;
 		VkDeviceSize largestHeap = 0;

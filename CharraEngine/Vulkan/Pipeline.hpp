@@ -14,7 +14,7 @@ namespace Charra
 	class GraphicsPipeline
 	{
 	public:
-		GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
+		GraphicsPipeline(Device& deviceRef, Renderpass& renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
 		const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 		~GraphicsPipeline();
 
@@ -28,8 +28,8 @@ namespace Charra
 		void createGraphicsPipeline(const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions);
 		//void createComputePipeline();
 	private: // Members
-		Device* m_deviceRef;
-		Renderpass* m_renderpassRef;
+		Device& m_deviceRef;
+		Renderpass& m_renderpassRef;
 
 		Shader m_vertexShader;
 		Shader m_fragmentShader;

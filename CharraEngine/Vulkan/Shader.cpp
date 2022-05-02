@@ -7,7 +7,7 @@
 
 namespace Charra
 {
-	Shader::Shader(Device* deviceRef,const std::string& filename, ShaderType shaderType)
+	Shader::Shader(Device& deviceRef,const std::string& filename, ShaderType shaderType)
 		: m_deviceRef(deviceRef), 
 		m_shaderModule(VK_NULL_HANDLE),
 		m_shaderType(shaderType)
@@ -17,12 +17,12 @@ namespace Charra
 
 	Shader::~Shader()
 	{
-		vkDestroyShaderModule(m_deviceRef->getDevice(), m_shaderModule, NULL);
+		vkDestroyShaderModule(m_deviceRef.getDevice(), m_shaderModule, NULL);
 	}
 
 	void Shader::createShader(const std::string& filename)
 	{
-		std::string fileLocation = std::string(std::string(ROOT_DIR) + std::string("\\CharraEngine\\Shaders\\") + filename);
+		std::string fileLocation = std::string(std::string(ROOT_DIR) + std::string("\\CharraEngine\\Shaders\\") + filename  + std::string(".spv"));
 
 		uint32_t size = 0;
 		std::vector<char> file = Platform::readFile(fileLocation.c_str(), &size);
@@ -34,6 +34,6 @@ namespace Charra
 		createInfo.codeSize = size;
 		createInfo.pCode = reinterpret_cast<uint32_t*>(file.data());
 
-		CHARRA_LOG_ERROR(vkCreateShaderModule(m_deviceRef->getDevice(), &createInfo, NULL, &m_shaderModule) != VK_SUCCESS, "Vulkan failed to create shader module");
+		CHARRA_LOG_ERROR(vkCreateShaderModule(m_deviceRef.getDevice(), &createInfo, NULL, &m_shaderModule) != VK_SUCCESS, "Vulkan failed to create shader module");
 	}
 }

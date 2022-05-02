@@ -16,10 +16,10 @@ namespace Charra
 	class Allocator
 	{
 	public:
-		Allocator(Device* deviceRef);
+		Allocator(Device& deviceRef);
 		~Allocator();
 
-		void submitData(Buffer* buffer, void* data, size_t bytes, size_t offset);
+		void submitData(Buffer& buffer, void* data, size_t bytes, size_t offset);
 		void getData();
 
 		Buffer allocateBuffer(uint64_t size, BufferTypeFlags type);
@@ -41,7 +41,7 @@ namespace Charra
 			std::vector<VkBufferCopy> m_copies;
 		};
 
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 
 		CommandBuffers m_commandBuffers;
 

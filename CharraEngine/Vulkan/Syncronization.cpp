@@ -2,7 +2,7 @@
 
 namespace Charra
 {
-	Semaphore::Semaphore(Device* deviceRef)
+	Semaphore::Semaphore(Device& deviceRef)
 		: m_deviceRef(deviceRef)
 	{
 		VkSemaphoreCreateInfo semaphoreCreateInfo{};
@@ -10,17 +10,17 @@ namespace Charra
 		semaphoreCreateInfo.pNext;
 		semaphoreCreateInfo.flags;
 
-		vkCreateSemaphore(m_deviceRef->getDevice(), &semaphoreCreateInfo, NULL, &m_semaphore);
+		vkCreateSemaphore(m_deviceRef.getDevice(), &semaphoreCreateInfo, NULL, &m_semaphore);
 	}
 
 	Semaphore::~Semaphore()
 	{
-		vkDestroySemaphore(m_deviceRef->getDevice(), m_semaphore, NULL);
+		vkDestroySemaphore(m_deviceRef.getDevice(), m_semaphore, NULL);
 	}
 	
 
 
-	Fence::Fence(Device* deviceRef)
+	Fence::Fence(Device& deviceRef)
 		: m_deviceRef(deviceRef)
 	{
 		VkFenceCreateInfo fenceCreateInfo{};
@@ -28,11 +28,11 @@ namespace Charra
 		fenceCreateInfo.pNext;
 		fenceCreateInfo.flags;
 
-		vkCreateFence(m_deviceRef->getDevice(), &fenceCreateInfo, NULL, &m_fence);
+		vkCreateFence(m_deviceRef.getDevice(), &fenceCreateInfo, NULL, &m_fence);
 	}
 
 	Fence::~Fence()
 	{
-		vkDestroyFence(m_deviceRef->getDevice(), m_fence, NULL);
+		vkDestroyFence(m_deviceRef.getDevice(), m_fence, NULL);
 	}
 }

@@ -4,7 +4,7 @@
 
 namespace Charra
 {
-	GraphicsPipeline::GraphicsPipeline(Device* deviceRef, Renderpass* renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
+	GraphicsPipeline::GraphicsPipeline(Device& deviceRef, Renderpass& renderpassRef, const std::string& vertexFilename, const std::string& fragmentFilename,
 		const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
 		: m_deviceRef(deviceRef),
 		m_renderpassRef(renderpassRef),
@@ -18,8 +18,8 @@ namespace Charra
 
 	GraphicsPipeline::~GraphicsPipeline()
 	{
-		vkDestroyPipeline(m_deviceRef->getDevice(), m_pipeline, NULL);
-		vkDestroyPipelineLayout(m_deviceRef->getDevice(), m_pipelineLayout, NULL);
+		vkDestroyPipeline(m_deviceRef.getDevice(), m_pipeline, NULL);
+		vkDestroyPipelineLayout(m_deviceRef.getDevice(), m_pipelineLayout, NULL);
 	}
 
 	void GraphicsPipeline::createGraphicsPipeline(const VkVertexInputBindingDescription& bindingDescription, const std::vector<VkVertexInputAttributeDescription>& attributeDescriptions)
@@ -164,7 +164,7 @@ namespace Charra
 		pipelineLayoutCreateInfo.pushConstantRangeCount = 0;
 		pipelineLayoutCreateInfo.pPushConstantRanges = nullptr;
 
-		CHARRA_LOG_ERROR(vkCreatePipelineLayout(m_deviceRef->getDevice(), &pipelineLayoutCreateInfo, NULL, &m_pipelineLayout) != VK_SUCCESS, "Vulkan failed to create a pipeline layout");
+		CHARRA_LOG_ERROR(vkCreatePipelineLayout(m_deviceRef.getDevice(), &pipelineLayoutCreateInfo, NULL, &m_pipelineLayout) != VK_SUCCESS, "Vulkan failed to create a pipeline layout");
 
 		VkGraphicsPipelineCreateInfo pipelineCreateInfo{};
 		pipelineCreateInfo.sType = VK_STRUCTURE_TYPE_GRAPHICS_PIPELINE_CREATE_INFO;
@@ -182,11 +182,11 @@ namespace Charra
 		pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
 		pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
 		pipelineCreateInfo.layout = m_pipelineLayout;
-		pipelineCreateInfo.renderPass = m_renderpassRef->getRenderPass();
+		pipelineCreateInfo.renderPass = m_renderpassRef.getRenderPass();
 		pipelineCreateInfo.subpass = 0;
 		pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineCreateInfo.basePipelineIndex = -1;
 
-		CHARRA_LOG_ERROR(vkCreateGraphicsPipelines(m_deviceRef->getDevice(), NULL, 1, &pipelineCreateInfo, NULL, &m_pipeline), "Vulkan failed to create a pipeline");
+		CHARRA_LOG_ERROR(vkCreateGraphicsPipelines(m_deviceRef.getDevice(), NULL, 1, &pipelineCreateInfo, NULL, &m_pipeline), "Vulkan failed to create a pipeline");
 	}
 }

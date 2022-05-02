@@ -15,7 +15,7 @@ namespace Charra
 	class CommandBuffers
 	{
 	public:
-		CommandBuffers(Device* deviceRef, uint32_t bufferCount, CommandBufferType type);
+		CommandBuffers(Device& deviceRef, uint32_t bufferCount, CommandBufferType type);
 		~CommandBuffers();
 
 		inline uint32_t getBufferCount() { return m_bufferCount; }
@@ -32,7 +32,7 @@ namespace Charra
 		void createCommandPool(CommandBufferType type);
 		void createCommandBuffers();
 	private: // Members
-		Device* m_deviceRef;
+		Device& m_deviceRef;
 		VkCommandPool m_commandPool;
 		std::vector<VkCommandBuffer> m_commandBuffers;
 
