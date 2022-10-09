@@ -7,6 +7,9 @@ ${CMAKE_CURRENT_LIST_DIR}/Core/Events.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Core/Logging.cpp
 
+${CMAKE_CURRENT_LIST_DIR}/GUI/Square.hpp
+${CMAKE_CURRENT_LIST_DIR}/GUI/Square.cpp
+
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp

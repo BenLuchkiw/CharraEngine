@@ -14,6 +14,8 @@ namespace Charra
 
 	namespace Platform
 	{
+		void initPlatformWin32(const char* applicationName, Events *eventHandler);
+		void shutdownPlatformWin32();
 
 		enum class ConsoleColours
 		{

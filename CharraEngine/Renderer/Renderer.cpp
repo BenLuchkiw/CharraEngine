@@ -4,6 +4,7 @@
 #include "Core/Logging.hpp"
 #include "Math/RendererTypes.hpp"
 #include "Math/MathFunctions.hpp"
+#include "GUI/Square.hpp"
 
 // For RendererImplData
 #include "Vulkan/Allocator/Allocator.hpp"
@@ -73,8 +74,8 @@ namespace Charra
 
 		std::vector<WindowData> windows;
 
-		std::vector<Vertex> vertices;
-		std::vector<uint32_t> indices;
+		GUI_Square square;
+
 		Buffer vertexStagingBuffer{};
 		Buffer vertexDeviceBuffer{};
 		Buffer indexStagingBuffer{};
@@ -113,59 +114,26 @@ namespace Charra
 		VkExtent2D extent = m_pImpl->windows[0].swapchain.getPixelExtent();
 		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, static_cast<float>(extent.width), 0, static_cast<float>(extent.height));
 
-		Vertex point;
-		point.position.x = 0.0f;
-		point.position.y = 0.0f;
-		point.position.z = 50.0f;
-		point.colour.r = 1.0f;
-		point.colour.g = 0.0f;
-		point.colour.b = 0.0f;
-		point.colour.a = 1.0f;
-		m_pImpl->vertices.push_back(point);
+		m_pImpl->square.updateVertices({0.0f, 0.0f}, {200, 200}, {1.0f, 0.0f, 0.0f, 1.0f}, mat);
+		// 4 vertices in a quad
+		uint32_t verticesSize = sizeof(Vertex) * 4;
+		// 6 indices in a quad
+		uint32_t indicesSize = sizeof(uint32_t) * 6;
 
-		point.position.x = 200.0f;
-		point.colour.r = 0.0f;
-		point.colour.g = 1.0f;
-		m_pImpl->vertices.push_back(point);
+		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(verticesSize, BufferType::CPU);
+		m_pImpl->indexStagingBuffer = m_pImpl->allocator.allocateBuffer(indicesSize, BufferType::CPU);
 
-		point.position.x = 200.0f;
-		point.position.y = 200.0f;
-		point.colour.g = 0.0f;
-		point.colour.b = 1.0f;
-		m_pImpl->vertices.push_back(point);
-
-		point.position.x = 0.0f;
-		point.colour.b = 0.0f;
-		m_pImpl->vertices.push_back(point);
-
-		m_pImpl->vertices[0].position = mulMatrix(mat, m_pImpl->vertices[0].position);
-		m_pImpl->vertices[1].position = mulMatrix(mat, m_pImpl->vertices[1].position);
-		m_pImpl->vertices[2].position = mulMatrix(mat, m_pImpl->vertices[2].position);
-		m_pImpl->vertices[3].position = mulMatrix(mat, m_pImpl->vertices[3].position);
-
-		m_pImpl->indices.push_back(0);
-		m_pImpl->indices.push_back(1);
-		m_pImpl->indices.push_back(2);
-		m_pImpl->indices.push_back(2);
-		m_pImpl->indices.push_back(3);
-		m_pImpl->indices.push_back(0);
-
-		uint32_t size = sizeof(Vertex) * m_pImpl->vertices.size();
-
-		m_pImpl->vertexStagingBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::CPU);
-		m_pImpl->indexStagingBuffer = m_pImpl->allocator.allocateBuffer(m_pImpl->indices.size() * sizeof(uint32_t), BufferType::CPU);
-
-		m_pImpl->allocator.submitData(m_pImpl->vertexStagingBuffer, m_pImpl->vertices.data(), size, 0);
-		m_pImpl->allocator.submitData(m_pImpl->indexStagingBuffer, m_pImpl->indices.data(), m_pImpl->indices.size() * sizeof(uint32_t), 0);
+		m_pImpl->allocator.submitData(m_pImpl->vertexStagingBuffer, m_pImpl->square.getVertices().data(), verticesSize, 0);
+		m_pImpl->allocator.submitData(m_pImpl->indexStagingBuffer, m_pImpl->square.getIndices(0).data(), indicesSize, 0);
 
 		BufferTypeFlags flags = m_pImpl->allocator.getBufferTypes();
 		if(flags & BufferType::GPU)
 		{
 			m_pImpl->shouldTransfer = true;
-			m_pImpl->vertexDeviceBuffer = m_pImpl->allocator.allocateBuffer(size, BufferType::GPU);
+			m_pImpl->vertexDeviceBuffer = m_pImpl->allocator.allocateBuffer(verticesSize, BufferType::GPU);
 			m_pImpl->allocator.applyForTransfer(&m_pImpl->vertexStagingBuffer, &m_pImpl->vertexDeviceBuffer);
 
-			m_pImpl->indexDeviceBuffer = m_pImpl->allocator.allocateBuffer(m_pImpl->indices.size() * sizeof(uint32_t), BufferType::GPU);
+			m_pImpl->indexDeviceBuffer = m_pImpl->allocator.allocateBuffer(indicesSize, BufferType::GPU);
 			m_pImpl->allocator.applyForTransfer(&m_pImpl->indexStagingBuffer, &m_pImpl->indexDeviceBuffer);
 		}
 	}
@@ -267,7 +235,9 @@ namespace Charra
 
 		//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
 
-		vkCmdDrawIndexed(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), m_pImpl->indices.size(), 1, 0, 0, 0);
+		// TODO this shoudl not be hardcoded
+	
+		vkCmdDrawIndexed(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), sizeof(uint32_t) * 6, 1, 0, 0, 0);
 		 
 		m_pImpl->commandBuffers.endRenderpass(m_pImpl->commandBufferIndex);
 

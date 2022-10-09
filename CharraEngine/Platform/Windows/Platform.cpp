@@ -56,6 +56,8 @@ namespace Charra
 			HCURSOR cursorNE;
 			HCURSOR cursorDefault;
 			HCURSOR cursorSizeAll;
+
+			TIMECAPS resolution;
 		};
 
 		static PlatformData g_platformData;
@@ -567,15 +569,15 @@ namespace Charra
 			return DefWindowProc(window, message, wParam, lParam);
 		}
 
-		void initPlatform(LPCSTR applicationName, HINSTANCE instance, Events *eventHandler)
+		void initPlatformWin32(LPCSTR applicationName, Events *eventHandler)
 		{
-			g_platformData.instance = instance;
+			g_platformData.instance = GetModuleHandle(NULL);
 			g_platformData.applicationName = applicationName;
 			g_platformData.eventHandler = eventHandler;
 
 			WNDCLASS wc{};
 			wc.lpfnWndProc   = WindowProc;
-			wc.hInstance     = instance;
+			wc.hInstance     = GetModuleHandle(NULL);
 			wc.lpszClassName = applicationName;
 
 			RegisterClass(&wc);
@@ -588,26 +590,15 @@ namespace Charra
 			g_platformData.cursorNW = LoadCursor(NULL, IDC_SIZENWSE);
 			g_platformData.cursorDefault = LoadCursor(NULL, IDC_ARROW);
 			g_platformData.cursorSizeAll = LoadCursor(NULL, IDC_SIZEALL);
+
+			timeGetDevCaps(&g_platformData.resolution, sizeof(TIMECAPS));
+
+			timeBeginPeriod(g_platformData.resolution.wPeriodMin); 
+		}
+	
+		void shutdownPlatformWin32()
+		{
+			timeEndPeriod(g_platformData.resolution.wPeriodMin);
 		}
 	}
-}
-
-int APIENTRY WinMain(HINSTANCE hInst, HINSTANCE hInstPrev, PSTR cmdline, int cmdshow)
-{
-	Charra::Application application;
-	
-	Charra::Platform::initPlatform("Charra Engine", hInst, application.getEventHandler());
-
-	TIMECAPS resolution;
-	timeGetDevCaps(&resolution, sizeof(TIMECAPS));
-
-	timeBeginPeriod(resolution.wPeriodMin); 
-
-	Charra::Timer::initTimer();
-	
-	application.run();
-
-	timeEndPeriod(resolution.wPeriodMin);
-
-	return 0;
 }

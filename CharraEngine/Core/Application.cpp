@@ -15,12 +15,16 @@ namespace Charra
 	Application::Application()
 	: m_eventHandler()
 	{
-		
+		// TODO platform specific, may be able to only have one initPlatform function...
+		Platform::initPlatformWin32("Charra Engine", &m_eventHandler);
+
+		Timer::initTimer();
 	}
 
 	Application::~Application()
 	{
-
+		// TODO platform specific, may be able to only have one shutdownPlatform function...
+		Platform::shutdownPlatformWin32();
 	}
 
 	void Application::run()

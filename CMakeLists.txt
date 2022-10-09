@@ -14,9 +14,12 @@ set(ALL_SOURCES
 ${CHARRA_SOURCE}
 ${VULKAN_SOURCES}
 ${WINDOWS_PLATFORM_SOURCES}
+
+# Change this to wherever main is.
+${CMAKE_CURRENT_LIST_DIR}/Sandbox/Main.cpp
 )
 
-add_executable(CharraEngine WIN32 ${ALL_SOURCES})
+add_executable(CharraEngine ${ALL_SOURCES})
 
 # For finding possible errors in the sea of warnings
 #set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} 
@@ -28,7 +31,11 @@ add_executable(CharraEngine WIN32 ${ALL_SOURCES})
 target_link_libraries(CharraEngine "${CMAKE_CURRENT_LIST_DIR}\\Libs\\vulkan\\Lib\\vulkan-1.lib")
 include_directories("Libs\\vulkan\\Include")
 include_directories("CharraEngine")
-# TODO platform stuff
+
+# For sandbox access
+include_directories(${CMAKE_CURRENT_LIST_DIR})
+
+# TODO conditional compilation of application for platform specific code
 
 add_definitions(-DVULKAN_VALIDATION_LAYERS)
 add_definitions(-DROOT_DIR="${CMAKE_CURRENT_LIST_DIR}")
