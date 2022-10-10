@@ -19,4 +19,5 @@ This is my current structure plan, very likely to change or be scrapped entirele
 * Active components will store listeners, conditionals, and actions.   
 * Passive components will store text, images, and any other data.   
 
-using containers to keep small groups of containers separate can hopefully reduce redundant state checking, as well as making repositioning components easier.
+using containers to keep small groups of components separate can hopefully reduce redundant state checking, as well as making repositioning components easier.
+Every window will need its own unique GUI object, this again modularizes the system and reduces complexity, in the future communication methods between components will be put into place. (order system...?)
