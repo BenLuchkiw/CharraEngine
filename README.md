@@ -9,15 +9,14 @@ At this point only windows has support, but I am trying to keep it easy to port 
 
 This is my current structure plan, very likely to change or be scrapped entireley.
 
-* Containers
+### Containers
 
-...Containers will hold relative and absolute locations on the screen, lists of components, data about layering/stacking of nearby containers, and cannot store other containers.  
-...Basically just subdivisions of screenspace.   
+* Containers will hold relative and absolute locations on the screen, lists of components, data about layering/stacking of nearby containers, and cannot store other containers.  
+* Basically just subdivisions of screenspace.   
 
-* Components
-...Components will be sorted based on whether they are active, or passive. Active and passive components can be abstracted into buttons, scrollbars, tabs, etc... Both types will store absolute and relative position data within containers.
-...Active components will store listeners, conditionals, and actions.   
-...Passive components will store text, images, and any other data.   
-
+### Components
+* Components will be sorted based on whether they are active, or passive. Active and passive components can be abstracted into buttons, scrollbars, tabs, etc... Both types will store absolute and relative position data within containers.
+* Active components will store listeners, conditionals, and actions.   
+* Passive components will store text, images, and any other data.   
 
 using containers to keep small groups of containers separate can hopefully reduce redundant state checking, as well as making repositioning components easier.
