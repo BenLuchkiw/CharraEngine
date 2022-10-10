@@ -16,8 +16,7 @@ ${VULKAN_SOURCES}
 ${WINDOWS_PLATFORM_SOURCES}
 
 # Change this to wherever main is.
-${CMAKE_CURRENT_LIST_DIR}/Sandbox/Main.cpp
-)
+${CMAKE_CURRENT_LIST_DIR}/Sandbox/Main.cpp)
 
 add_executable(CharraEngine ${ALL_SOURCES})
 
