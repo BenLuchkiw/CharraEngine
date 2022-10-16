@@ -182,7 +182,7 @@ namespace Charra
 		pipelineCreateInfo.pColorBlendState = &colorBlendStateCreateInfo;
 		pipelineCreateInfo.pDynamicState = &dynamicStateCreateInfo;
 		pipelineCreateInfo.layout = m_pipelineLayout;
-		pipelineCreateInfo.renderPass = m_renderpassRef.getRenderPass();
+		pipelineCreateInfo.renderPass = m_renderpassRef.getRenderpass();
 		pipelineCreateInfo.subpass = 0;
 		pipelineCreateInfo.basePipelineHandle = VK_NULL_HANDLE;
 		pipelineCreateInfo.basePipelineIndex = -1;

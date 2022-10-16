@@ -6,7 +6,7 @@ namespace Charra
 {
 	Renderpass::Renderpass(Device& deviceRef, VkFormat format)
 		: m_deviceRef(deviceRef),
-		m_renderPass(VK_NULL_HANDLE),
+		m_renderpass(VK_NULL_HANDLE),
 		m_format(format)
 	{
 		createRenderpass();
@@ -14,7 +14,7 @@ namespace Charra
 
 	Renderpass::~Renderpass()
 	{
-		vkDestroyRenderPass(m_deviceRef.getDevice(), m_renderPass, NULL);
+		vkDestroyRenderPass(m_deviceRef.getDevice(), m_renderpass, NULL);
 	}
 
 	void Renderpass::createRenderpass()
@@ -56,6 +56,6 @@ namespace Charra
 		renderPassCreateInfo.dependencyCount = NULL;
 		renderPassCreateInfo.pDependencies = NULL;
 
-		CHARRA_LOG_ERROR(vkCreateRenderPass(m_deviceRef.getDevice(), &renderPassCreateInfo, nullptr, &m_renderPass), "Vulkan failed to create a render pass");
+		CHARRA_LOG_ERROR(vkCreateRenderPass(m_deviceRef.getDevice(), &renderPassCreateInfo, nullptr, &m_renderpass), "Vulkan failed to create a render pass");
 	}
 }

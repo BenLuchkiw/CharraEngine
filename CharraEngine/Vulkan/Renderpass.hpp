@@ -15,14 +15,14 @@ namespace Charra
 
 		void createRenderpass();
 		
-		VkRenderPass getRenderPass() { return m_renderPass; }
+		VkRenderPass getRenderpass() { return m_renderpass; }
 
 	private: // Methods
 
 	private: // Members
 		Device& m_deviceRef;
 
-		VkRenderPass m_renderPass;
+		VkRenderPass m_renderpass;
 		VkFormat m_format;
 	};
 }

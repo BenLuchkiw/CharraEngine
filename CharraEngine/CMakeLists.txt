@@ -18,6 +18,8 @@ ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.cpp
+${CMAKE_CURRENT_LIST_DIR}/Renderer/Window.hpp
+${CMAKE_CURRENT_LIST_DIR}/Renderer/Window.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Buffer.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/Allocator.hpp

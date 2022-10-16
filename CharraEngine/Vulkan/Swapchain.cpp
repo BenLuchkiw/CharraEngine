@@ -202,7 +202,7 @@ namespace Charra
 		framebufferCreateInfo.sType = VK_STRUCTURE_TYPE_FRAMEBUFFER_CREATE_INFO;
 		framebufferCreateInfo.pNext;
 		framebufferCreateInfo.flags;
-		framebufferCreateInfo.renderPass = m_renderpassRef->getRenderPass();
+		framebufferCreateInfo.renderPass = m_renderpassRef->getRenderpass();
 		framebufferCreateInfo.attachmentCount = 1;
 		framebufferCreateInfo.pAttachments;
 		framebufferCreateInfo.width = m_pixelExtent.width;
