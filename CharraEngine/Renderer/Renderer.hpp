@@ -20,7 +20,7 @@ namespace Charra
 	class Renderer
 	{
 	public: 
-		Renderer(const std::string& mainWindowName, Events* eventHandler);
+		Renderer(const std::string& mainWindowName, iVec2 windowSize, iVec2 windowPos, Events* eventHandler);
 		~Renderer();
 
 		void draw();

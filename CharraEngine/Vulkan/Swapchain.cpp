@@ -152,20 +152,6 @@ namespace Charra
 		vkAcquireNextImageKHR(m_deviceRef.getDevice(), m_swapchain, UINT32_MAX, waitSemaphore->getSemaphore(), VK_NULL_HANDLE, &m_imageIndex);
 	}
 
-	bool Swapchain::resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData)
-	{
-		VkExtent2D size;
-		size.width = UPPER_UINT64(data);
-		size.height = LOWER_UINT64(data);
-
-		Swapchain* swapchainRef = static_cast<Swapchain*>(privateData);
-
-		swapchainRef->setPixelExtent(size.width, size.height);
-		swapchainRef->invalidateSwapchain();
-		
-		return true;
-	}
-
 	void Swapchain::createImages()
 	{
 		vkGetSwapchainImagesKHR(m_deviceRef.getDevice(), m_swapchain, &m_imageCount, NULL);

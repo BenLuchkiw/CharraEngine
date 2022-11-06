@@ -34,8 +34,6 @@ namespace Charra
 		void prepareNextImage(Semaphore* waitSemaphore);
 		inline uint32_t getImageIndex() { return m_imageIndex; }
 
-		static bool resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData);
-
 		inline void invalidateSwapchain() { m_resized = true; }
 
 		inline VkFramebuffer getFramebuffer() { 

@@ -13,7 +13,7 @@ namespace Charra
 		iVec2() :x(0), y(0) {}
 		iVec2(uint32_t a, uint32_t b) :x(a), y(b) {}
 
-		void operator=(const iVec2& val) { x=val.x, y=val.y; }
+		void operator=(const iVec2 val) { x=val.x, y=val.y; }
 		uint32_t& operator[](size_t index) { return elements[index]; }
 
 		iVec2 operator+(const iVec2& other) { return iVec2(other.x+x, other.y+y); }
@@ -61,7 +61,7 @@ namespace Charra
 		iVec3(uint32_t a, uint32_t b, uint32_t c) :x(a), y(b), z(c) {}
 		iVec3() :x(0), y(0), z(0) {}
 
-		void operator=(const iVec3& val) { x=val.x, y=val.y, z=val.z; }
+		void operator=(const iVec3 val) { x=val.x, y=val.y, z=val.z; }
 		uint32_t& operator[](size_t size) { return elements[size]; }
 
 		iVec3 operator+(iVec3& other) { return iVec3(x+other.x, y+other.y, z+other.z); }
@@ -112,7 +112,7 @@ namespace Charra
 		iVec4(uint32_t a, uint32_t b, uint32_t c, uint32_t d) :x(a), y(b), z(c), w(d) {}
 		iVec4() :x(0), y(0), z(0), w(0) {}
 
-		void operator=(const iVec4& val) { x=val.x, y=val.y, z=val.z, w=val.w; }
+		void operator=(const iVec4 val) { x=val.x, y=val.y, z=val.z, w=val.w; }
 		uint32_t& operator[](size_t size) { return elements[size]; }
 
 		iVec4 operator+(iVec4& other) { return iVec4(x+other.x, y+other.y, z+other.z, w+other.w); }
@@ -152,7 +152,7 @@ namespace Charra
 		fVec2(float a, float b) :x(a), y(b) {}
 		fVec2() :x(0.0f), y(0.0f) {}
 
-		void operator=(const fVec2& val) { x=val.x, y=val.y; }
+		void operator=(const fVec2 val) { x=val.x, y=val.y; }
 		float& operator[](size_t size) { return elements[size]; }
 
 		fVec2 operator+(fVec2& other) { return fVec2(other.x+x, other.y+y); }
@@ -196,7 +196,7 @@ namespace Charra
 		fVec3(float a, float b, float c) :x(a), y(b), z(c) {}
 		fVec3() :x(0.0f), y(0.0f), z(0.0f) {}
 
-		void operator=(const fVec3& val) { x=val.x, y=val.y, z=val.z; }
+		void operator=(const fVec3 val) { x=val.x, y=val.y, z=val.z; }
 		float& operator[](size_t size) { return elements[size]; }
 
 		fVec3 operator+(fVec3& other) { return fVec3(x+other.x, y+other.y, z+other.z); }
@@ -247,7 +247,7 @@ namespace Charra
 		fVec4(float a, float b, float c, float d) :x(a), y(b), z(c), w(d) {}
 		fVec4() :x(0.0f), y(0.0f), z(0.0f), w(0.0f) {}
 
-		void operator=(const fVec4& val) { x=val.x, y=val.y, z=val.z, w=val.w; }
+		void operator=(const fVec4 val) { x=val.x, y=val.y, z=val.z, w=val.w; }
 		float& operator[](size_t size) { return elements[size]; }
 
 		fVec4 operator+(fVec4& other) { return fVec4(x+other.x, y+other.y, z+other.z, w+other.w); }
@@ -313,7 +313,7 @@ namespace Charra
 		Mat4X3(fVec3 A, fVec3 B, fVec3 C, fVec3 D) :a(A), b(B), c(C), d(D) {}
 		Mat4X3() :a(), b(), c(), d() {}
 
-		void operator=(Mat4X3& copy) { a=copy.a; b=copy.b; c=copy.c; d=copy.d; }
+		void operator=(Mat4X3 copy) { a=copy.a; b=copy.b; c=copy.c; d=copy.d; }
 		fVec3& operator[](size_t size) { return *(fVec3*)&elements[size*3]; }
 
 	private:
@@ -334,7 +334,7 @@ namespace Charra
 		Mat4X4() :a(), b(), c(), d() {}
 		Mat4X4(fVec4 A, fVec4 B, fVec4 C, fVec4 D) :a(A), b(B), c(C), d(D) {}
 
-		void operator=(Mat4X4& val) { a=val.a; b=val.b; c=val.c; d=val.d; }
+		void operator=(Mat4X4 val) { a=val.a; b=val.b; c=val.c; d=val.d; }
 		fVec4& operator[](size_t pos) { return *(fVec4*)&elements[4*pos]; }
 		
 		Mat4X3& getMat4X3() { return matA; }

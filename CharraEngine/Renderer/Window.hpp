@@ -10,6 +10,7 @@
 
 namespace Charra
 {
+
 	class Window
 	{
 	public:
@@ -21,6 +22,9 @@ namespace Charra
 		Renderpass& 	getRenderpass() { return m_renderpass; }
 		Semaphore& 		getSemaphore() 	{ return m_imageWaitSemaphore; }
 		Material&		getMaterial()	{ return m_material; }
+		Mat4X4&			getOrthoMatrix(){ return m_orthographicMatrix; }
+
+		static bool resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData);
 	private: // Methods
 
 	private: // Members
@@ -30,5 +34,7 @@ namespace Charra
 		Renderpass	m_renderpass;
 		Semaphore 	m_imageWaitSemaphore;
 		Material 	m_material;
+
+		Mat4X4 m_orthographicMatrix = {};
 	};
 }

@@ -12,12 +12,18 @@
 
 namespace Charra
 {
-	Application::Application()
-	: m_eventHandler()
+	Dummy::Dummy(const std::string& appName, Events* eventHandlerRef)
 	{
 		// TODO platform specific, may be able to only have one initPlatform function...
-		Platform::initPlatformWin32("Charra Engine", &m_eventHandler);
+		Platform::initPlatformWin32(appName.data(), eventHandlerRef);
+	}
 
+	Application::Application(iVec2 screenPos, iVec2  screenSize, const std::string& appName)
+	: m_eventHandler(),
+	  m_dummy(appName, &m_eventHandler),
+	  m_renderer(appName, screenSize, screenPos, &m_eventHandler),
+	  m_appName(appName)
+	{
 		Timer::initTimer();
 	}
 
@@ -29,8 +35,6 @@ namespace Charra
 
 	void Application::run()
 	{
-		Renderer renderer("Charra Engine", &m_eventHandler);
-
 		const double timePerFrame = 16.6666f;
 		double frameStart = Timer::getCurrentTime();
 		double deltaTime = frameStart;
@@ -39,7 +43,7 @@ namespace Charra
 
 		while(!Platform::shouldAppQuit())
 		{
-			renderer.draw();
+			m_renderer.draw();
 
 			auto message = m_eventHandler.getTextBuffer();
 			if(message.size() > 0)

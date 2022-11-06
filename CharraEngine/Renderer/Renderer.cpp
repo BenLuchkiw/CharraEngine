@@ -9,7 +9,7 @@
 
 namespace Charra
 {
-	Renderer::Renderer(const std::string& mainWindowName, Events* eventHandler)
+		Renderer::Renderer(const std::string& mainWindowName, iVec2 windowSize, iVec2 windowPos, Events* eventHandler)
 		: m_eventHandlerRef(eventHandler),
 		  m_instance(),
 		  m_device(m_instance),
@@ -22,17 +22,16 @@ namespace Charra
 		// TODO max size/fix error
 		m_windows.reserve(20);
 
-		Platform::createWindow(mainWindowName, {400,400});
-		m_windows.emplace_back(iVec2{200, 200}, mainWindowName, m_device, m_instance, m_vertAttribs, m_attribDesc);
+		Platform::createWindow(mainWindowName, windowSize, windowPos);
+		m_windows.emplace_back(windowSize, mainWindowName, m_device, m_instance, m_vertAttribs, m_attribDesc);
 		m_eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT,
-												m_windows[0].getSwapchain().resizeCallback, 
-												&m_windows[0].getSwapchain());
+												m_windows[0].resizeCallback, 
+												&m_windows[0]);
 
 
 		VkExtent2D extent = m_windows[0].getSwapchain().getPixelExtent();
-		Mat4X4 mat = getOrthographicMatrix(100, 0, 0, static_cast<float>(extent.width), 0, static_cast<float>(extent.height));
 
-		m_square.updateVertices({0.0f, 0.0f}, {200, 200}, {1.0f, 0.0f, 0.0f, 1.0f}, mat);
+		m_square.updateVertices({0.0f, 0.0f}, {200, 200}, {1.0f, 0.0f, 0.0f, 1.0f}, m_windows[0].getOrthoMatrix());
 		// 4 vertices in a quad
 		uint32_t verticesSize = sizeof(Vertex) * 4;
 		// 6 indices in a quad
