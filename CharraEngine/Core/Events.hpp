@@ -200,7 +200,10 @@ namespace Charra
 
 			void windowInFocus(uint32_t windowIndex) { m_windowInFocus = windowIndex; };
 
+			bool isButtonDown(InputCode button);
+
 		private: // Methods
+			void updateStates(EventType type, InputCode code, uint64_t data);
 
 		private: // Members
 			// Each element of the array corresponds to an event type, this allows quicker lookup
@@ -209,5 +212,9 @@ namespace Charra
 			std::string m_textBuffer;
 
 			uint32_t m_windowInFocus;
+
+			// This will have some useless bytes because there are only 115 useful keys/buttons,
+			// however this reduces computation
+			std::array<bool, 166> m_buttonStates = {};
 	};
 };

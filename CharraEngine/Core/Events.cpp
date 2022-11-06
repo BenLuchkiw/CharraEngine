@@ -45,6 +45,8 @@ namespace Charra
 		int typeIndex = static_cast<int>(type);
 		typeIndex--; // This accounts for NO_EVENT
 
+		updateStates(type, code);
+
 		if(type == EventType::KEY_INPUT)
 		{
 			if(m_textBuffer.size() > 100)
@@ -81,6 +83,37 @@ namespace Charra
 					CHARRA_LOG_ERROR(true, "Event callback returned false");
 				}
 			}
+		}
+	}
+
+	bool Events::isButtonDown(InputCode code)
+	{
+		int index = static_cast<int>(code);
+		index--;
+		return m_buttonStates[index];
+	}
+
+	void Events::updateStates(EventType type, InputCode code)
+	{
+		int index = static_cast<int>(code);
+		index--;
+
+		switch(type)
+		{
+		case EventType::KEY_DOWN:
+			m_buttonStates[index] = true;
+			break;
+		case EventType::KEY_UP:
+			m_buttonStates[index] = false;
+			break;
+		case EventType::MOUSE_CLICK:
+			m_buttonStates[index] = true;
+			break;
+		case EventType::MOUSE_RELEASE:
+			m_buttonStates[index] = false;
+			break;
+		default:
+			break;
 		}
 	}
 }
