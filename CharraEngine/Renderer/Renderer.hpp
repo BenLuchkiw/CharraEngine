@@ -25,6 +25,8 @@ namespace Charra
 
 		void draw();
 
+		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour);
+
 	private: // Methods
 
 	private: // Members
@@ -50,12 +52,12 @@ namespace Charra
 		Buffer m_indexDeviceBuffer{};
 		bool m_shouldTransfer = false;
 		
-		GUI_Square m_square;
-
 		VkVertexInputBindingDescription m_vertAttribs{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX};
 		std::vector<VkVertexInputAttributeDescription> m_attribDesc = {
 			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)},
 			{1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, colour)}
 		};
+
+		std::vector<GUI_Square> m_squares;
 	};
 }

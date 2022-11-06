@@ -29,30 +29,30 @@ namespace Charra
 												&m_windows[0]);
 
 
-		VkExtent2D extent = m_windows[0].getSwapchain().getPixelExtent();
+		//m_squares.emplace_back(fVec3(0.0f, 0.0f, 0.0f), fVec2(200.0f, 200.0f), fVec4(0.0f, 1.0f, 0.0f, 1.0f), 
+		//						m_windows[0].getOrthoMatrix());
 
-		m_square.updateVertices({0.0f, 0.0f}, {200, 200}, {1.0f, 0.0f, 0.0f, 1.0f}, m_windows[0].getOrthoMatrix());
 		// 4 vertices in a quad
-		uint32_t verticesSize = sizeof(Vertex) * 4;
-		// 6 indices in a quad
-		uint32_t indicesSize = sizeof(uint32_t) * 6;
-
-		m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::CPU);
-		m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::CPU);
-
-		m_allocator.submitData(m_vertexStagingBuffer, m_square.getVertices().data(), verticesSize, 0);
-		m_allocator.submitData(m_indexStagingBuffer, m_square.getIndices(0).data(), indicesSize, 0);
-
-		BufferTypeFlags flags = m_allocator.getBufferTypes();
-		if(flags & BufferType::GPU)
-		{
-			m_shouldTransfer = true;
-			m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::GPU);
-			m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
-
-			m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::GPU);
-			m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
-		}
+		//uint32_t verticesSize = sizeof(Vertex) * 4;
+		//// 6 indices in a quad
+		//uint32_t indicesSize = sizeof(uint32_t) * 6;
+//
+		//m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::CPU);
+		//m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::CPU);
+//
+		//m_allocator.submitData(m_vertexStagingBuffer, m_square.getVertices().data(), verticesSize, 0);
+		//m_allocator.submitData(m_indexStagingBuffer, m_square.getIndices(0).data(), indicesSize, 0);
+//
+		//BufferTypeFlags flags = m_allocator.getBufferTypes();
+		//if(flags & BufferType::GPU)
+		//{
+		//	m_shouldTransfer = true;
+		//	m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::GPU);
+		//	m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
+//
+		//	m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::GPU);
+		//	m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
+		//}
 	}
 
 	Renderer::~Renderer()
@@ -67,6 +67,49 @@ namespace Charra
 
 	void Renderer::draw()
 	{
+		// Update quad list and set up transfers
+
+		if(m_squares.size() == 0)
+		{
+			return;
+		}
+
+		for(int i = 0; i < m_squares.size(); i++)
+		{
+			m_squares[i].updateVertices(m_windows[0].getOrthoMatrix());
+		}
+
+		static uint32_t verticesSize = sizeof(Vertex) * 4;
+		static uint32_t indicesSize = sizeof(uint32_t) * 6;
+
+		m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize * m_squares.size(), BufferType::CPU);
+		m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize * m_squares.size(), BufferType::CPU);
+
+		std::vector<Vertex> vertices;
+		std::vector<uint32_t> indices;
+
+		for(int i = 0; i < m_squares.size(); i++)
+		{
+			vertices.insert(vertices.end(), m_squares[i].getVertices().begin(), m_squares[i].getVertices().end());
+
+			std::array<uint32_t, 6> indicesTemp = m_squares[i].getIndices(i * 4);
+			indices.insert(indices.end(), indicesTemp.begin(), indicesTemp.end());
+		}
+
+		m_allocator.submitData(m_vertexStagingBuffer, vertices.data(), verticesSize * m_squares.size(), 0);
+		m_allocator.submitData(m_indexStagingBuffer, indices.data(), indicesSize * m_squares.size(), 0);
+
+		BufferTypeFlags flags = m_allocator.getBufferTypes();
+		if(flags & BufferType::GPU)
+		{
+			m_shouldTransfer = true;
+			m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize * m_squares.size(), BufferType::GPU);
+			m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
+
+			m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize * m_squares.size(), BufferType::GPU);
+			m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
+		}
+		
 		// Check for transfers
 
 		// Prepare images for all windows
@@ -150,9 +193,9 @@ namespace Charra
 
 		//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
 
-		// TODO this shoudl not be hardcoded
+		// TODO this should not be hardcoded
 	
-		vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6, 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_squares.size(), 1, 0, 0, 0);
 		 
 		m_commandBuffers.endRenderpass(m_commandBufferIndex);
 
@@ -206,5 +249,12 @@ namespace Charra
 
 		// This flips the index between 0 and 1 without branching
 		m_commandBufferIndex = 1 - m_commandBufferIndex;
+
+		m_squares.clear();
+	}
+
+	void Renderer::drawQuad(fVec3 pos, fVec2 size, fVec4 colour)
+	{
+		m_squares.emplace_back(pos, size, colour, m_windows[0].getOrthoMatrix());
 	}
 }

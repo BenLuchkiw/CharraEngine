@@ -35,32 +35,20 @@ namespace Charra
 
 	void Application::run()
 	{
-		const double timePerFrame = 16.6666f;
-		double frameStart = Timer::getCurrentTime();
-		double deltaTime = frameStart;
+		m_renderer.draw();
 
-		ScaledTimer timer(1.0f);
-
-		while(!Platform::shouldAppQuit())
+		auto message = m_eventHandler.getTextBuffer();
+		if(message.size() > 0)
 		{
-			m_renderer.draw();
-
-			auto message = m_eventHandler.getTextBuffer();
-			if(message.size() > 0)
-			{
-				CHARRA_LOG_INFO(true, message);
-				m_eventHandler.resetTextBuffer();
-			}
-
-			deltaTime = timer.getTimeDiff(timePerFrame);
-
-			std::ostringstream stream;
-			stream.precision(2);
-			stream << "Delta time: " << deltaTime << " fps: " << (1000.0f / deltaTime) << "\n";
-
-			CHARRA_LOG_INFO(true, stream.str());
-
-			Platform::pollEvents();
+			CHARRA_LOG_INFO(true, message);
+			m_eventHandler.resetTextBuffer();
 		}
+
+		Platform::pollEvents();
+	}
+
+	bool Application::shouldQuit()
+	{
+		return Platform::shouldAppQuit();
 	}
 };

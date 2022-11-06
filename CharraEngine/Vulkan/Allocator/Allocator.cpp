@@ -122,15 +122,15 @@ namespace Charra
 
 		memcpy(buffer.data, ptr, bytes);
 
-		VkMappedMemoryRange range;
-		range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
-		range.pNext;
-		range.size = bytes;
-		range.offset = buffer.offset;
-		range.memory = buffer.memory;
-
 		if(!m_hostCoherant)
 		{
+			VkMappedMemoryRange range;
+			range.sType = VK_STRUCTURE_TYPE_MAPPED_MEMORY_RANGE;
+			range.pNext;
+			range.size = bytes;
+			range.offset = buffer.offset;
+			range.memory = buffer.memory;
+
 			vkFlushMappedMemoryRanges(m_deviceRef.getDevice(), 1, &range);
 		}
 	}

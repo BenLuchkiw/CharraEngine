@@ -22,8 +22,12 @@ namespace Charra
 		~Application();
 
 		Events* getEventHandler() { return &m_eventHandler; }
+		Renderer* getRendererRef() { return &m_renderer; }
 
 		void run();
+
+		bool shouldQuit();
+
 	private: // Methods
 	
 	private: // Members
