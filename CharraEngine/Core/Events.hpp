@@ -203,7 +203,7 @@ namespace Charra
 			bool isButtonDown(InputCode button);
 
 		private: // Methods
-			void updateStates(EventType type, InputCode code, uint64_t data);
+			void updateStates(EventType type, InputCode code);
 
 		private: // Members
 			// Each element of the array corresponds to an event type, this allows quicker lookup
