@@ -18,10 +18,10 @@ namespace Charra
 		Platform::initPlatformWin32(appName.data(), eventHandlerRef);
 	}
 
-	Application::Application(iVec2 screenPos, iVec2  screenSize, const std::string& appName)
+	Application::Application(const std::string& appName)
 	: m_eventHandler(),
 	  m_dummy(appName, &m_eventHandler),
-	  m_renderer(appName, screenSize, screenPos, &m_eventHandler),
+	  m_renderer(&m_eventHandler),
 	  m_appName(appName)
 	{
 		Timer::initTimer();
@@ -35,8 +35,6 @@ namespace Charra
 
 	void Application::run()
 	{
-		m_renderer.draw();
-
 		auto message = m_eventHandler.getTextBuffer();
 		if(message.size() > 0)
 		{

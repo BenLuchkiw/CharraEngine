@@ -1,22 +1,40 @@
 #include "Window.hpp"
 
 #include "Math/MathFunctions.hpp"
+#include "Renderer/Renderer.hpp"
+#include "Platform/Platform.hpp"
+
+#include "Vulkan/vulkan.h"
 
 namespace Charra
 {
-	Window::Window(iVec2 size, const std::string& name, Device& deviceRef, Instance& instanceRef, VkVertexInputBindingDescription vertAttribs, std::vector<VkVertexInputAttributeDescription> attribDesc)
-	: m_windowSize(size),
+	WindowDummy::WindowDummy(iVec2 size, iVec2 position, const std::string& name, Window* window)
+	{
+		window->m_windowID = Platform::createWindow(name, size, position);
+	}
+
+	Window::Window(iVec2 size, iVec2 position, const std::string& name, Renderer* rendererRef)
+	: m_dummy(size, position, name, this),
+	  m_rendererRef(rendererRef),
+	  m_windowSize(size),
 	  m_windowName(name),
-	  m_swapchain(deviceRef, instanceRef),
-	  m_renderpass(deviceRef, m_swapchain.getSurfaceFormat()),
-	  m_imageWaitSemaphore(deviceRef),
-	  m_material(deviceRef, m_renderpass, vertAttribs, attribDesc, "SimpleVertex", "SimpleFragment")
+	  m_swapchain(rendererRef->getDevice(), rendererRef->getInstance()),
+	  m_renderpass(rendererRef->getDevice(), m_swapchain.getSurfaceFormat()),
+	  m_imageWaitSemaphore(rendererRef->getDevice()),
+	  m_material(rendererRef->getDevice(), m_renderpass, "SimpleVertex", "SimpleFragment")
 	{
 		m_swapchain.passRenderpass(&m_renderpass);
 		
 		m_orthographicMatrix = getOrthographicMatrix(100, 0, 0, static_cast<float>(size.width),
 														  0, static_cast<float>(size.height));
-	}	
+
+		rendererRef->getEventHandler()->registerEventCallback(m_windowID, EventType::WINDOW_RESIZE, InputCode::NO_EVENT, &Window::resizeCallback, this);
+	}
+
+	Window::~Window()
+	{
+		vkDeviceWaitIdle(m_rendererRef->getDevice().getDevice());
+	}
 
 	bool Window::resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData)
 		{

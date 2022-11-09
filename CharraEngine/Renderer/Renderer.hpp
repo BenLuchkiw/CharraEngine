@@ -20,12 +20,19 @@ namespace Charra
 	class Renderer
 	{
 	public: 
-		Renderer(const std::string& mainWindowName, iVec2 windowSize, iVec2 windowPos, Events* eventHandler);
+		Renderer(Events* eventHandler);
 		~Renderer();
 
-		void draw();
+		// All render commands will be tied to a window id
+		void draw(std::vector<Window>& windows);
 
 		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour);
+
+	protected:
+		friend class Charra::Window;
+		Device& getDevice() { return m_device; }
+		Instance& getInstance() { return m_instance; }
+		Events* getEventHandler() { return m_eventHandlerRef; }
 
 	private: // Methods
 
@@ -43,21 +50,13 @@ namespace Charra
 		Semaphore m_renderFinishedSemaphore;
 		Fence m_renderFinishedFence;
 
-		std::vector<Window> m_windows;
-
 		// TODO get this out of this class
 		Buffer m_vertexStagingBuffer{};
 		Buffer m_vertexDeviceBuffer{};
 		Buffer m_indexStagingBuffer{};
 		Buffer m_indexDeviceBuffer{};
 		bool m_shouldTransfer = false;
-		
-		VkVertexInputBindingDescription m_vertAttribs{0, sizeof(Vertex), VK_VERTEX_INPUT_RATE_VERTEX};
-		std::vector<VkVertexInputAttributeDescription> m_attribDesc = {
-			{0, 0, VK_FORMAT_R32G32B32_SFLOAT, offsetof(Vertex, position)},
-			{1, 0, VK_FORMAT_R32G32B32A32_SFLOAT, offsetof(Vertex, colour)}
-		};
 
-		std::vector<GUI_Square> m_squares;
+		std::vector<GUI_Square> m_squares = {};
 	};
 }

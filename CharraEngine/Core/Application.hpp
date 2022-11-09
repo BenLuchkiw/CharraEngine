@@ -18,7 +18,7 @@ namespace Charra
 	{
 	public:
 		// platform is passed by value so that this class can be platform agnostic
-		Application(iVec2 screenPos, iVec2 screenSize, const std::string& appName);
+		Application(const std::string& appName);
 		~Application();
 
 		Events* getEventHandler() { return &m_eventHandler; }

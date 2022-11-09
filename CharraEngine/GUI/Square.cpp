@@ -10,6 +10,12 @@ namespace Charra
 		updateVertices(mat);
 	}
 
+	GUI_Square::GUI_Square(fVec3 coords, fVec2 size, fVec4 colour)
+	: m_coords(coords), m_size(size), m_colour(colour)
+	{
+		
+	}
+
 	GUI_Square::~GUI_Square()
 	{
 

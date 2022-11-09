@@ -220,6 +220,8 @@ namespace Charra
 							m_transfers[i].m_copies.size(), m_transfers[i].m_copies.data());
 		}
 
+		m_transfers.clear();
+
 		m_commandBuffers.endRecording(0);
 
 		return m_commandBuffers.getCommandBuffer(0);

@@ -11,10 +11,20 @@
 namespace Charra
 {
 
+	class Renderer;
+	class Window;
+
+	class WindowDummy // Platform needs to make window before swapchain is created
+	{
+	public:
+		WindowDummy(iVec2 size, iVec2 position, const std::string& name, Window* window);
+	};
+
 	class Window
 	{
 	public:
-		Window(iVec2 size, const std::string& name, Device& deviceRef, Instance& instanceRef, VkVertexInputBindingDescription vertAttribs, std::vector<VkVertexInputAttributeDescription> attribDesc);
+		Window(iVec2 size, iVec2 position, const std::string& name, Renderer* rendererRef);
+		~Window();
 
 		iVec2&			getWindowSize() { return m_windowSize; }
 		std::string& 	getWindowName() { return m_windowName; }
@@ -28,6 +38,10 @@ namespace Charra
 	private: // Methods
 
 	private: // Members
+	friend class WindowDummy;
+		WindowDummy m_dummy;
+		Renderer* m_rendererRef;
+
 		iVec2 		m_windowSize;
 		std::string m_windowName;
 		Swapchain 	m_swapchain;
@@ -36,5 +50,7 @@ namespace Charra
 		Material 	m_material;
 
 		Mat4X4 m_orthographicMatrix = {};
+
+		uint32_t m_windowID;
 	};
 }

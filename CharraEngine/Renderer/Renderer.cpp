@@ -9,7 +9,7 @@
 
 namespace Charra
 {
-		Renderer::Renderer(const std::string& mainWindowName, iVec2 windowSize, iVec2 windowPos, Events* eventHandler)
+		Renderer::Renderer(Events* eventHandler)
 		: m_eventHandlerRef(eventHandler),
 		  m_instance(),
 		  m_device(m_instance),
@@ -19,40 +19,7 @@ namespace Charra
 		  m_renderFinishedSemaphore(m_device),
 		  m_renderFinishedFence(m_device)
 	{
-		// TODO max size/fix error
-		m_windows.reserve(20);
-
-		Platform::createWindow(mainWindowName, windowSize, windowPos);
-		m_windows.emplace_back(windowSize, mainWindowName, m_device, m_instance, m_vertAttribs, m_attribDesc);
-		m_eventHandlerRef->registerEventCallback(0, EventType::WINDOW_RESIZE, InputCode::NO_EVENT,
-												m_windows[0].resizeCallback, 
-												&m_windows[0]);
-
-
-		//m_squares.emplace_back(fVec3(0.0f, 0.0f, 0.0f), fVec2(200.0f, 200.0f), fVec4(0.0f, 1.0f, 0.0f, 1.0f), 
-		//						m_windows[0].getOrthoMatrix());
-
-		// 4 vertices in a quad
-		//uint32_t verticesSize = sizeof(Vertex) * 4;
-		//// 6 indices in a quad
-		//uint32_t indicesSize = sizeof(uint32_t) * 6;
-//
-		//m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::CPU);
-		//m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::CPU);
-//
-		//m_allocator.submitData(m_vertexStagingBuffer, m_square.getVertices().data(), verticesSize, 0);
-		//m_allocator.submitData(m_indexStagingBuffer, m_square.getIndices(0).data(), indicesSize, 0);
-//
-		//BufferTypeFlags flags = m_allocator.getBufferTypes();
-		//if(flags & BufferType::GPU)
-		//{
-		//	m_shouldTransfer = true;
-		//	m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize, BufferType::GPU);
-		//	m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
-//
-		//	m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize, BufferType::GPU);
-		//	m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
-		//}
+		
 	}
 
 	Renderer::~Renderer()
@@ -65,18 +32,41 @@ namespace Charra
 		m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
 	}
 
-	void Renderer::draw()
+	void Renderer::draw(std::vector<Window>& windows)
 	{
+		// 1/10th of a second
+		VkFence fences[] = {m_renderFinishedFence.getFence()};
+		vkWaitForFences(m_device.getDevice(), 1, fences, true, 100000000);
+		m_renderFinishedFence.reset();
+
+
 		// Update quad list and set up transfers
 
-		if(m_squares.size() == 0)
+		if(m_vertexStagingBuffer.buffer != VK_NULL_HANDLE)
+		{
+			m_allocator.deallocateBuffer(&m_vertexStagingBuffer);
+		}
+		if(m_vertexDeviceBuffer.buffer != VK_NULL_HANDLE)
+		{
+			m_allocator.deallocateBuffer(&m_vertexDeviceBuffer);
+		}
+		if(m_indexStagingBuffer.buffer != VK_NULL_HANDLE)
+		{
+			m_allocator.deallocateBuffer(&m_indexStagingBuffer);
+		}
+		if(m_indexDeviceBuffer.buffer != VK_NULL_HANDLE)
+		{
+			m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
+		}
+
+		if(m_squares.size() == 0 || windows.size() == 0)
 		{
 			return;
 		}
 
 		for(int i = 0; i < m_squares.size(); i++)
 		{
-			m_squares[i].updateVertices(m_windows[0].getOrthoMatrix());
+			m_squares[i].updateVertices(windows[0].getOrthoMatrix());
 		}
 
 		static uint32_t verticesSize = sizeof(Vertex) * 4;
@@ -119,6 +109,7 @@ namespace Charra
 		// Submit command buffers
 
 		// Switch frame value
+
  
 		std::vector<VkSemaphore> renderWaitSemaphores;
 		std::vector<VkPipelineStageFlags> waitStages;
@@ -126,8 +117,6 @@ namespace Charra
 		// Transfer vertices if required
 		if(m_shouldTransfer)
 		{
-			m_shouldTransfer = false;
-
 			renderWaitSemaphores.push_back(m_transferFinishedSemaphore.getSemaphore());
 			waitStages.push_back(VK_PIPELINE_STAGE_TRANSFER_BIT);
 
@@ -145,8 +134,8 @@ namespace Charra
 			CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
 		
-		Window& window = m_windows[0];
-		m_windows[0].getSwapchain().prepareNextImage(&window.getSemaphore());
+		Window& window = windows[0];
+		windows[0].getSwapchain().prepareNextImage(&window.getSemaphore());
 
 		m_commandBuffers.resetCommandBuffer(m_commandBufferIndex);
 		m_commandBuffers.beginRecording(m_commandBufferIndex);
@@ -222,13 +211,6 @@ namespace Charra
 		VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore.getSemaphore()};
 		submitInfo.pSignalSemaphores = signalSemaphores;
 
-		// 1/10th of a second
-		VkFence fences[] = {m_renderFinishedFence.getFence()};
-		vkWaitForFences(m_device.getDevice(), 1, fences, true, 100000000);
-		m_renderFinishedFence.reset();
-
-		// This is the minimal info that can be done after waiting on fences
-
 		CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
 
 		VkPresentInfoKHR presentInfo{};
@@ -255,6 +237,6 @@ namespace Charra
 
 	void Renderer::drawQuad(fVec3 pos, fVec2 size, fVec4 colour)
 	{
-		m_squares.emplace_back(pos, size, colour, m_windows[0].getOrthoMatrix());
+		m_squares.emplace_back(pos, size, colour);
 	}
 }

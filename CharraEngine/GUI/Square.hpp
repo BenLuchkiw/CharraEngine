@@ -12,6 +12,7 @@ namespace Charra
 	public:
 		GUI_Square() {};
 		GUI_Square(fVec3 coords, fVec2 size, fVec4 colour, Mat4X4 matrix);
+		GUI_Square(fVec3 coords, fVec2 size, fVec4 colour);
 		~GUI_Square();
 
 		void updateVertices(fVec3 coords, fVec2 size, fVec4 colour, Mat4X4 matrix);

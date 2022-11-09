@@ -5,6 +5,7 @@
 #include "Platform/Timer.hpp"
 
 #include <iostream>
+#include <string>
 #include <vector>
 
 #include "Core/Application.hpp"
@@ -42,7 +43,7 @@ namespace Charra
 			std::vector<uint32_t> windowIds;
 			std::vector<LPCSTR> windowNames;
 			std::vector<iVec2> windowDimensions;
-			LPCSTR applicationName;
+			std::string applicationName;
 			WNDCLASS windowClass;
 
 			Charra::Events *eventHandler;
@@ -107,13 +108,13 @@ namespace Charra
 			return fileContents;
 		}
 
-		void createWindow(const std::string& windowName, iVec2 size, iVec2 position)
+		uint32_t createWindow(const std::string& windowName, iVec2 size, iVec2 position)
 		{
 			// TODO drag and drop files is changed here check msdn extended window styles
 
 			HWND window = CreateWindowExA(
 				0,
-				g_platformData.applicationName,
+				g_platformData.applicationName.c_str(),
 				windowName.c_str(),
 				WS_POPUP|WS_VISIBLE|WS_SYSMENU,
 				position.x,
@@ -134,6 +135,8 @@ namespace Charra
 			g_platformData.windowIds.push_back(g_platformData.currentIdGen++);
 			g_platformData.windowNames.push_back(windowName.c_str());
 			g_platformData.windowDimensions.push_back({0,0});
+
+			return g_platformData.windowIds.back();
 		}
 
 		static void moveWindow(uint32_t windowIndex, iVec2 position, iVec2 size)
