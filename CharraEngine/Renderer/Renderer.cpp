@@ -59,44 +59,44 @@ namespace Charra
 			m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
 		}
 
-		if(m_squares.size() == 0 || windows.size() == 0)
+		if(m_quads.size() == 0 || windows.size() == 0)
 		{
 			return;
 		}
 
-		for(int i = 0; i < m_squares.size(); i++)
+		for(int i = 0; i < m_quads.size(); i++)
 		{
-			m_squares[i].updateVertices(windows[0].getOrthoMatrix());
+			m_quads[i].updateVertices(windows[m_quads[i].getWindowID()].getOrthoMatrix());
 		}
 
 		static uint32_t verticesSize = sizeof(Vertex) * 4;
 		static uint32_t indicesSize = sizeof(uint32_t) * 6;
 
-		m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize * m_squares.size(), BufferType::CPU);
-		m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize * m_squares.size(), BufferType::CPU);
+		m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize * m_quads.size(), BufferType::CPU);
+		m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize * m_quads.size(), BufferType::CPU);
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
 
-		for(int i = 0; i < m_squares.size(); i++)
+		for(int i = 0; i < m_quads.size(); i++)
 		{
-			vertices.insert(vertices.end(), m_squares[i].getVertices().begin(), m_squares[i].getVertices().end());
+			vertices.insert(vertices.end(), m_quads[i].getVertices().begin(), m_quads[i].getVertices().end());
 
-			std::array<uint32_t, 6> indicesTemp = m_squares[i].getIndices(i * 4);
+			std::array<uint32_t, 6> indicesTemp = m_quads[i].getIndices(i * 4);
 			indices.insert(indices.end(), indicesTemp.begin(), indicesTemp.end());
 		}
 
-		m_allocator.submitData(m_vertexStagingBuffer, vertices.data(), verticesSize * m_squares.size(), 0);
-		m_allocator.submitData(m_indexStagingBuffer, indices.data(), indicesSize * m_squares.size(), 0);
+		m_allocator.submitData(m_vertexStagingBuffer, vertices.data(), verticesSize * m_quads.size(), 0);
+		m_allocator.submitData(m_indexStagingBuffer, indices.data(), indicesSize * m_quads.size(), 0);
 
 		BufferTypeFlags flags = m_allocator.getBufferTypes();
 		if(flags & BufferType::GPU)
 		{
 			m_shouldTransfer = true;
-			m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize * m_squares.size(), BufferType::GPU);
+			m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize * m_quads.size(), BufferType::GPU);
 			m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
 
-			m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize * m_squares.size(), BufferType::GPU);
+			m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize * m_quads.size(), BufferType::GPU);
 			m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
 		}
 		
@@ -184,7 +184,7 @@ namespace Charra
 
 		// TODO this should not be hardcoded
 	
-		vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_squares.size(), 1, 0, 0, 0);
+		vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_quads.size(), 1, 0, 0, 0);
 		 
 		m_commandBuffers.endRenderpass(m_commandBufferIndex);
 
@@ -232,11 +232,12 @@ namespace Charra
 		// This flips the index between 0 and 1 without branching
 		m_commandBufferIndex = 1 - m_commandBufferIndex;
 
-		m_squares.clear();
+		m_quads.clear();
 	}
 
-	void Renderer::drawQuad(fVec3 pos, fVec2 size, fVec4 colour)
+	void Renderer::drawQuad(fVec3 pos, fVec2 size, fVec4 colour, uint32_t windowID)
 	{
-		m_squares.emplace_back(pos, size, colour);
+		m_quads.emplace_back(pos, size, colour);
+		m_quads.back().assignWindow(windowID);
 	}
 }

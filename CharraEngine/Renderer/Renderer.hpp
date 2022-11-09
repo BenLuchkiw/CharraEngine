@@ -5,8 +5,7 @@
 #include <string>
 
 #include "Core/Events.hpp"
-#include "GUI/GUI.hpp"
-#include "GUI/Square.hpp"
+#include "Draw2D/Quad.hpp"
 #include "Math/MathTypes.hpp"
 #include "Renderer/Window.hpp"
 #include "Vulkan/Allocator/Allocator.hpp"
@@ -26,7 +25,7 @@ namespace Charra
 		// All render commands will be tied to a window id
 		void draw(std::vector<Window>& windows);
 
-		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour);
+		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour, uint32_t windowID);
 
 	protected:
 		friend class Charra::Window;
@@ -57,6 +56,6 @@ namespace Charra
 		Buffer m_indexDeviceBuffer{};
 		bool m_shouldTransfer = false;
 
-		std::vector<GUI_Square> m_squares = {};
+		std::vector<Quad> m_quads = {};
 	};
 }
