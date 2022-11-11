@@ -47,21 +47,22 @@ int main()
 	Charra::Events* events = application.getEventHandler();
 
 	std::vector<Charra::Window> windows;
+	windows.reserve(5);
 	windows.emplace_back(Charra::iVec2(500, 500), Charra::iVec2(0,0), "Charra Test", renderer);
-	//windows.emplace_back(Charra::iVec2(500, 500), Charra::iVec2(501,0), "Charra Test2", renderer);
+	windows.emplace_back(Charra::iVec2(500, 500), Charra::iVec2(501,0), "Charra Test2", renderer);
 
 	Object obj1(Charra::fVec3(400.0f, 400.0f, 20.0f), Charra::fVec2(100.0f, 100.0f), Charra::fVec4(1.0f, 1.0f, 0.0f, 0.9f), renderer);
-	//Object obj2(Charra::fVec3(200.0f, 400.0f, 20.0f), Charra::fVec2(100.0f, 100.0f), Charra::fVec4(1.0f, 1.0f, 0.5f, 0.9f), renderer);
+	Object obj2(Charra::fVec3(200.0f, 400.0f, 20.0f), Charra::fVec2(100.0f, 100.0f), Charra::fVec4(1.0f, 1.0f, 0.5f, 0.9f), renderer);
 
 	obj1.windowID = 0;
-	//obj2.windowID = 1;
+	obj2.windowID = 1;
 
 	events->registerEventCallback(0, Charra::EventType::WINDOW_RESIZE, Charra::InputCode::NO_EVENT, &resize, &obj1);
 
 	while (!application.shouldQuit())
 	{
 		obj1.draw();
-		//obj2.draw();
+		obj2.draw();
 		
 		renderer->draw(windows);
 		application.run();

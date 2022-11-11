@@ -134,69 +134,70 @@ namespace Charra
 			CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
 		
-		Window& window = windows[0];
-		windows[0].getSwapchain().prepareNextImage(&window.getSemaphore());
+		for(auto& window : windows)
+		{
+			window.getSwapchain().prepareNextImage(&window.getSemaphore());
+		}
 
 		m_commandBuffers.resetCommandBuffer(m_commandBufferIndex);
 		m_commandBuffers.beginRecording(m_commandBufferIndex);
 
-		// I will record the main window now
-		m_commandBuffers.beginRenderpass(window.getRenderpass().getRenderpass(),
-												window.getSwapchain().getFramebuffer(), 
-												window.getMaterial().getPipeline().getPipeline(),
-												window.getSwapchain().getPixelExtent(),
-												m_commandBufferIndex);
-
-
-		VkRect2D scissor;
-		scissor.extent = window.getSwapchain().getPixelExtent();
-		scissor.offset = {0,0};
-
-		VkViewport viewportCreateInfo{};
-		viewportCreateInfo.x = 0;
-		viewportCreateInfo.y = 0;
-		viewportCreateInfo.width = static_cast<float>(scissor.extent.width);
-		viewportCreateInfo.height = static_cast<float>(scissor.extent.height);
-		viewportCreateInfo.minDepth = 0.0f;
-		viewportCreateInfo.maxDepth = 1.0f;
-
-		vkCmdSetViewport(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &viewportCreateInfo);
-		vkCmdSetScissor(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &scissor);
-
-		if(m_vertexDeviceBuffer.size != 0)
+		for(auto& window : windows)
 		{
-			vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexDeviceBuffer.buffer,
-								   &m_vertexDeviceBuffer.offset);
+			// I will record the main window now
+			m_commandBuffers.beginRenderpass(window.getRenderpass().getRenderpass(),
+													window.getSwapchain().getFramebuffer(), 
+													window.getMaterial().getPipeline().getPipeline(),
+													window.getSwapchain().getPixelExtent(),
+													m_commandBufferIndex);
 
-			vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex),
-								 m_indexDeviceBuffer.buffer, m_indexDeviceBuffer.offset, VK_INDEX_TYPE_UINT32);
+
+			VkRect2D scissor;
+			scissor.extent = window.getSwapchain().getPixelExtent();
+			scissor.offset = {0,0};
+
+			VkViewport viewportCreateInfo{};
+			viewportCreateInfo.x = 0;
+			viewportCreateInfo.y = 0;
+			viewportCreateInfo.width = static_cast<float>(scissor.extent.width);
+			viewportCreateInfo.height = static_cast<float>(scissor.extent.height);
+			viewportCreateInfo.minDepth = 0.0f;
+			viewportCreateInfo.maxDepth = 1.0f;
+
+			vkCmdSetViewport(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &viewportCreateInfo);
+			vkCmdSetScissor(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &scissor);
+
+			if(m_vertexDeviceBuffer.size != 0)
+			{
+				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexDeviceBuffer.buffer,
+									&m_vertexDeviceBuffer.offset);
+
+				vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex),
+									m_indexDeviceBuffer.buffer, m_indexDeviceBuffer.offset, VK_INDEX_TYPE_UINT32);
+			}
+			else 
+			{
+				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexStagingBuffer.buffer,
+									&m_vertexStagingBuffer.offset);
+
+				vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), m_indexStagingBuffer.buffer, 
+									m_indexStagingBuffer.offset, VK_INDEX_TYPE_UINT32);
+			}
+
+			//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
+
+			// TODO this should not be hardcoded
+		
+			vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_quads.size(), 1, 0, 0, 0);
+			
+			m_commandBuffers.endRenderpass(m_commandBufferIndex);
+			renderWaitSemaphores.push_back(window.getSemaphore().getSemaphore());
+			waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 		}
-		else 
-		{
-			vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexStagingBuffer.buffer,
-								   &m_vertexStagingBuffer.offset);
-
-			vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), m_indexStagingBuffer.buffer, 
-								 m_indexStagingBuffer.offset, VK_INDEX_TYPE_UINT32);
-		}
-
-		//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);
-
-		// TODO this should not be hardcoded
-	
-		vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_quads.size(), 1, 0, 0, 0);
-		 
-		m_commandBuffers.endRenderpass(m_commandBufferIndex);
-
-		// TODO gui stuff
-		// I will record any gui windows now
-
 
 		m_commandBuffers.endRecording(m_commandBufferIndex);
 
 		// Submit command buffers
-		renderWaitSemaphores.push_back(window.getSemaphore().getSemaphore());
-		waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 
 		VkSubmitInfo submitInfo{};
 		submitInfo.waitSemaphoreCount = renderWaitSemaphores.size();
@@ -213,21 +214,24 @@ namespace Charra
 
 		CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
 
-		VkPresentInfoKHR presentInfo{};
-		presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
-		presentInfo.pNext;
-		presentInfo.waitSemaphoreCount = 1;
-		VkSemaphore presentSemaphores[] = {m_renderFinishedSemaphore.getSemaphore()};
-		presentInfo.pWaitSemaphores = presentSemaphores;
-		presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
-		VkSwapchainKHR swapchains[1] = {window.getSwapchain().getSwapchain()};
-		presentInfo.pSwapchains = swapchains;
-		const uint32_t imageIndices[1] = {window.getSwapchain().getImageIndex()};
-		presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
-		presentInfo.pResults;
+		for(auto& window : windows)
+		{
+			VkPresentInfoKHR presentInfo{};
+			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
+			presentInfo.pNext;
+			presentInfo.waitSemaphoreCount = 1;
+			VkSemaphore presentSemaphores[] = {m_renderFinishedSemaphore.getSemaphore()};
+			presentInfo.pWaitSemaphores = presentSemaphores;
+			presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
+			VkSwapchainKHR swapchains[1] = {window.getSwapchain().getSwapchain()};
+			presentInfo.pSwapchains = swapchains;
+			const uint32_t imageIndices[1] = {window.getSwapchain().getImageIndex()};
+			presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
+			presentInfo.pResults;
 
-		// TODO: Check this result for resizing
-		vkQueuePresentKHR(m_device.getGraphicsQueue(), &presentInfo);
+			// TODO: Check this result for resizing
+			vkQueuePresentKHR(m_device.getGraphicsQueue(), &presentInfo);
+		}
 
 		// This flips the index between 0 and 1 without branching
 		m_commandBufferIndex = 1 - m_commandBufferIndex;
