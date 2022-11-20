@@ -23,7 +23,7 @@ namespace Charra
 		~Renderer();
 
 		// All render commands will be tied to a window id
-		void draw(std::vector<Window>& windows);
+		void draw(std::vector<Window*>& windows);
 
 		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour, uint32_t windowID);
 
@@ -46,7 +46,6 @@ namespace Charra
 		Allocator m_allocator;
 
 		Semaphore m_transferFinishedSemaphore;
-		Semaphore m_renderFinishedSemaphore;
 		Fence m_renderFinishedFence;
 
 		// TODO get this out of this class

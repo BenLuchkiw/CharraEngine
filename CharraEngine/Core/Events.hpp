@@ -193,7 +193,8 @@ namespace Charra
 			// type is the eventType
 			// code is the event code, can be 0 if it is not key event
 			// data will be passed into the data member of the callback function
-			void signalEvent(EventType type, InputCode code, uint64_t data);
+			// windowIndex signals which window was selected UINT32_MAX will mean no particular window
+			void signalEvent(EventType type, InputCode code, uint64_t data, uint32_t windowIndex);
 
 			std::string& getTextBuffer() { return m_textBuffer; }
 			void resetTextBuffer() { m_textBuffer.clear(); }

@@ -163,7 +163,16 @@ namespace Charra
 
 		bool shouldAppQuit()
 		{
-			return g_platformData.windows.size() == 0;
+			bool quit = true;
+			for(const auto id : g_platformData.windowIds)
+			{
+				if(id != UINT32_MAX)
+				{
+					quit = false;
+					break;
+				}
+			}
+			return quit;
 		}
 
 		void printMessage(const std::string& message, ConsoleColours colour)
@@ -309,7 +318,7 @@ namespace Charra
 
 					if(g_platformData.resizeData.startingArea != HTCAPTION)
 					{
-						g_platformData.eventHandler->signalEvent(EventType::WINDOW_RESIZE, InputCode::NO_EVENT, (uint64_t)((uint64_t)size.width << 32 | size.height));
+						g_platformData.eventHandler->signalEvent(EventType::WINDOW_RESIZE, InputCode::NO_EVENT, (uint64_t)((uint64_t)size.width << 32 | size.height), i);
 					}
 
 					break;
@@ -396,6 +405,16 @@ namespace Charra
 			iVec2 newSize(0, 0);
 			LRESULT hitResult;
 			POINT cursorPos;
+			uint32_t windowID = 0;
+
+			for(int i = 0; i < g_platformData.windows.size(); i++)
+			{
+				if(g_platformData.windows[i] == window)
+				{
+					windowID = i;
+					break;
+				}
+			}
 
 
 			switch(message)
@@ -413,18 +432,12 @@ namespace Charra
 					return 0;
 
 				case WM_DESTROY:
-					for(int i = 0; i < g_platformData.windows.size(); i++)
-					{
-						if(g_platformData.windows[i] == window)
-						{
-							g_platformData.windowDimensions.erase(g_platformData.windowDimensions.begin() + i);
-							g_platformData.windowNames.erase(g_platformData.windowNames.begin() + i);
-							g_platformData.windows.erase(g_platformData.windows.begin() + i);
-							g_platformData.windowIds.erase(g_platformData.windowIds.begin() + i);
-						}
-					}
-					
-					DestroyWindow(window);
+					g_platformData.windowDimensions[windowID].width = 0;
+					g_platformData.windowDimensions[windowID].height = 0;
+					g_platformData.windowNames[windowID] = "";
+					g_platformData.windows[windowID] = NULL;
+					g_platformData.windowIds[windowID] = UINT32_MAX;
+					g_platformData.eventHandler->signalEvent(Charra::EventType::WINDOW_CLOSE, Charra::InputCode::NO_EVENT, NULL, windowID);
 					
 					return 0;
 
@@ -456,7 +469,7 @@ namespace Charra
 					}
 
 
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::LEFT_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::LEFT_MOUSE_BUTTON, lParam, UINT32_MAX);
 					return 0;
 
 				case WM_NCLBUTTONUP:
@@ -469,23 +482,23 @@ namespace Charra
 						return 0;
 					}
 
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::LEFT_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::LEFT_MOUSE_BUTTON, lParam, windowID);
 					return 0;
 				
 				case WM_RBUTTONDOWN:
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::RIGHT_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::RIGHT_MOUSE_BUTTON, lParam, windowID);
 					return 0;
 				
 				case WM_RBUTTONUP:
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::RIGHT_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::RIGHT_MOUSE_BUTTON, lParam, windowID);
 					return 0;
 				
 				case WM_MBUTTONDOWN:
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::MIDDLE_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_CLICK, InputCode::MIDDLE_MOUSE_BUTTON, lParam, windowID);
 					return 0;
 
 				case WM_MBUTTONUP:
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::MIDDLE_MOUSE_BUTTON, lParam);
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_RELEASE, InputCode::MIDDLE_MOUSE_BUTTON, lParam, windowID);
 					return 0;
 				// TODO x1 x2 mouse buttons
 
@@ -502,26 +515,15 @@ namespace Charra
 						return 0;
 					}
 
-					g_platformData.eventHandler->signalEvent(EventType::MOUSE_MOVE, InputCode::NO_EVENT, lParam);			
+					g_platformData.eventHandler->signalEvent(EventType::MOUSE_MOVE, InputCode::NO_EVENT, lParam, windowID);			
 					return 0;
 
 				case WM_KEYDOWN:
 					if (static_cast<InputCode>(wParam) == InputCode::F1_KEY)
 					{
 						DestroyWindow(window);
-
-						for(int i = 0; i < g_platformData.windows.size(); i++)
-						{
-							if(g_platformData.windows[i] == window)
-							{
-								g_platformData.windowDimensions.erase(g_platformData.windowDimensions.begin() + i);
-								g_platformData.windowNames.erase(g_platformData.windowNames.begin() + i);
-								g_platformData.windows.erase(g_platformData.windows.begin() + i);
-							}
-						}
-
 					}
-					g_platformData.eventHandler->signalEvent(EventType::KEY_DOWN, static_cast<InputCode>(wParam), 0);
+					g_platformData.eventHandler->signalEvent(EventType::KEY_DOWN, static_cast<InputCode>(wParam), NULL, windowID);
 					return 0;
 
 				case WM_CHAR:
@@ -529,11 +531,11 @@ namespace Charra
 					{
 						wParam = (WPARAM)0x000A;
 					}
-					g_platformData.eventHandler->signalEvent(EventType::KEY_INPUT, InputCode::NO_EVENT, wParam);
+					g_platformData.eventHandler->signalEvent(EventType::KEY_INPUT, InputCode::NO_EVENT, wParam, windowID);
 					return 0;
 
 				case WM_KEYUP:
-					g_platformData.eventHandler->signalEvent(EventType::KEY_UP, static_cast<InputCode>(wParam), 0);
+					g_platformData.eventHandler->signalEvent(EventType::KEY_UP, static_cast<InputCode>(wParam), NULL, windowID);
 					return 0;
 
 				case WM_SETCURSOR:

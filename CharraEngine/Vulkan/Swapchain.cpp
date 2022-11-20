@@ -113,7 +113,7 @@ namespace Charra
 		createInfo.compositeAlpha = VK_COMPOSITE_ALPHA_OPAQUE_BIT_KHR;
 		createInfo.presentMode = m_presentMode;
 		createInfo.clipped = VK_TRUE;
-		createInfo.oldSwapchain = m_swapchain; // #Resizing will need this
+		createInfo.oldSwapchain = m_swapchain;
 
 		auto oldSwapchain = m_swapchain;
 
@@ -127,6 +127,21 @@ namespace Charra
 
 	void Swapchain::prepareNextImage(Semaphore* waitSemaphore)
 	{
+		if(m_framebufferInvalid)
+		{
+			m_framebufferInvalid = false;
+			createImages();
+		}
+
+		if(m_imageIndex + 1 == m_imageCount)
+		{
+			m_imageIndex = 0;
+		}
+		else
+		{
+			m_imageIndex++;
+		}
+		
 		if(m_resized)
 		{
 			// Destroys the deffered framebuffers that are not in use
@@ -142,7 +157,7 @@ namespace Charra
 			
 			createSwapchain();
 			createImages();
-			m_resized = false;			
+			m_resized = false;
 		}
 		if(m_framebufferInvalid)
 		{

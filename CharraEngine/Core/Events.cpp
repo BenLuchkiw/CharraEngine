@@ -40,8 +40,13 @@ namespace Charra
 		}
 	}
 
-	void Events::signalEvent(EventType type, InputCode code, uint64_t data)
+	void Events::signalEvent(EventType type, InputCode code, uint64_t data, uint32_t windowIndex)
 	{
+		if(windowIndex != UINT32_MAX)
+		{
+			m_windowInFocus = windowIndex;
+		}
+		
 		int typeIndex = static_cast<int>(type);
 		typeIndex--; // This accounts for NO_EVENT
 
@@ -63,16 +68,11 @@ namespace Charra
 				m_textBuffer += ((wchar_t)data);
 			}
 		}
-
-		if(type == EventType::MOUSE_RELEASE)
-		{
-			// TODO handle key and mouse states and check if mouse was down first;
-		}
-
+		
 		auto it = m_eventDetails[typeIndex].begin();
 		for (it; it < m_eventDetails[typeIndex].end(); it++)
 		{
-			if(it->code == code || it->code == InputCode::ALL_EVENTS && it->windowIndex == m_windowInFocus)
+			if((it->code != InputCode::NO_EVENT && it->code == code) || it->code == InputCode::NO_EVENT && it->windowIndex == m_windowInFocus)
 			{
 				if(it->callback(type, code, data, it->privateData))
 				{

@@ -26,15 +26,14 @@ namespace Charra
 		inline VkExtent2D getPixelExtent() { return m_pixelExtent; }
 
 		// For use by the owning window class only
-		inline void setPixelExtent(int width, int height) { m_pixelExtent = VkExtent2D(width, height); };
+		inline void setPixelExtent(int width, int height) { m_pixelExtent.width = width; m_pixelExtent.height = height; };
+		inline void invalidateSwapchain() { m_resized = true; }
 
 		inline VkFormat getSurfaceFormat() { return m_surfaceFormat.format; }
 
 		inline VkSwapchainKHR getSwapchain() { return m_swapchain; }
 		void prepareNextImage(Semaphore* waitSemaphore);
 		inline uint32_t getImageIndex() { return m_imageIndex; }
-
-		inline void invalidateSwapchain() { m_resized = true; }
 
 		inline VkFramebuffer getFramebuffer() { 
 			return m_framebuffers[m_imageIndex]; }

@@ -21,6 +21,7 @@ namespace Charra
 	  m_swapchain(rendererRef->getDevice(), rendererRef->getInstance()),
 	  m_renderpass(rendererRef->getDevice(), m_swapchain.getSurfaceFormat()),
 	  m_imageWaitSemaphore(rendererRef->getDevice()),
+	  m_renderFinishedSemaphore(rendererRef->getDevice()),
 	  m_material(rendererRef->getDevice(), m_renderpass, "SimpleVertex", "SimpleFragment")
 	{
 		m_swapchain.passRenderpass(&m_renderpass);
@@ -37,20 +38,20 @@ namespace Charra
 	}
 
 	bool Window::resizeCallback(EventType type, InputCode code, uint64_t data, void* privateData)
-		{
-			VkExtent2D size;
-			size.width = UPPER_UINT64(data);
-			size.height = LOWER_UINT64(data);
+	{
+		VkExtent2D size;
+		size.width = UPPER_UINT64(data);
+		size.height = LOWER_UINT64(data);
 
-			Window* windowRef = static_cast<Window*>(privateData);
+		Window* windowRef = static_cast<Window*>(privateData);
 
-			windowRef->getSwapchain().setPixelExtent(size.width, size.height);
-			windowRef->getSwapchain().invalidateSwapchain();
+		windowRef->getSwapchain().setPixelExtent(size.width, size.height);
+		windowRef->getSwapchain().invalidateSwapchain();
 
-			windowRef->getOrthoMatrix() = getOrthographicMatrix(100, 0, 0, static_cast<float>(size.width),
-														  0, static_cast<float>(size.height));
-			windowRef->getWindowSize() = {size.width, size.height};
-		
-			return true;
-		}
+		windowRef->getOrthoMatrix() = getOrthographicMatrix(100, 0, 0, static_cast<float>(size.width),
+													  0, static_cast<float>(size.height));
+		windowRef->getWindowSize() = {size.width, size.height};
+	
+		return true;
+	}
 }

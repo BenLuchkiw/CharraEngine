@@ -39,6 +39,23 @@ bool resize(Charra::EventType type, Charra::InputCode code, uint64_t data, void*
 	return true;
 }
 
+bool window1Closed = false;
+bool window2Closed = false;
+
+bool close(Charra::EventType type, Charra::InputCode code, uint64_t data, void* privateData)
+{
+	if(reinterpret_cast<uint64_t>(privateData) == 1)
+	{
+		window1Closed = true;
+	}
+	if(reinterpret_cast<uint64_t>(privateData) == 2)
+	{
+		window2Closed = true;
+	}
+
+	return true;
+}
+
 int main()
 {
 	Charra::Application application("Charra Test");
@@ -46,10 +63,11 @@ int main()
 	Charra::Renderer* renderer = application.getRendererRef();
 	Charra::Events* events = application.getEventHandler();
 
-	std::vector<Charra::Window> windows;
-	windows.reserve(5);
-	windows.emplace_back(Charra::iVec2(500, 500), Charra::iVec2(0,0), "Charra Test", renderer);
-	windows.emplace_back(Charra::iVec2(500, 500), Charra::iVec2(501,0), "Charra Test2", renderer);
+	Charra::Window window1(Charra::iVec2(500, 500), Charra::iVec2(0,0), "Charra Test", renderer);
+	Charra::Window window2(Charra::iVec2(500, 500), Charra::iVec2(501,0), "Charra Test2", renderer);
+
+	std::vector<Charra::Window*> windows;
+
 
 	Object obj1(Charra::fVec3(400.0f, 400.0f, 20.0f), Charra::fVec2(100.0f, 100.0f), Charra::fVec4(1.0f, 1.0f, 0.0f, 0.9f), renderer);
 	Object obj2(Charra::fVec3(200.0f, 400.0f, 20.0f), Charra::fVec2(100.0f, 100.0f), Charra::fVec4(1.0f, 1.0f, 0.5f, 0.9f), renderer);
@@ -57,14 +75,28 @@ int main()
 	obj1.windowID = 0;
 	obj2.windowID = 1;
 
-	events->registerEventCallback(0, Charra::EventType::WINDOW_RESIZE, Charra::InputCode::NO_EVENT, &resize, &obj1);
+	events->registerEventCallback(0, Charra::EventType::WINDOW_CLOSE, Charra::InputCode::NO_EVENT, &close, (void*)1);
+	events->registerEventCallback(1, Charra::EventType::WINDOW_CLOSE, Charra::InputCode::NO_EVENT, &close, (void*)2);
 
 	while (!application.shouldQuit())
 	{
-		obj1.draw();
-		obj2.draw();
-		
+		if(!window1Closed)
+		{
+			windows.push_back(&window1);
+			obj1.draw();
+		}
+		if(!window2Closed)
+		{
+			windows.push_back(&window2);
+			obj2.draw();
+		}
+		if(window2Closed || window1Closed)
+		{
+			obj2.m_colour.x += 0.00001;
+		}
+
 		renderer->draw(windows);
 		application.run();
+		windows.clear();
 	}
 }

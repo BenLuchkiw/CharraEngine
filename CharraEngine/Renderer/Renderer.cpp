@@ -16,7 +16,6 @@ namespace Charra
 		  m_commandBuffers(m_device, 2, CommandBufferType::GRAPHICS),
 		  m_allocator(m_device),
 		  m_transferFinishedSemaphore(m_device),
-		  m_renderFinishedSemaphore(m_device),
 		  m_renderFinishedFence(m_device)
 	{
 		
@@ -32,7 +31,7 @@ namespace Charra
 		m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
 	}
 
-	void Renderer::draw(std::vector<Window>& windows)
+	void Renderer::draw(std::vector<Window*>& windows)
 	{
 		// 1/10th of a second
 		VkFence fences[] = {m_renderFinishedFence.getFence()};
@@ -64,9 +63,15 @@ namespace Charra
 			return;
 		}
 
-		for(int i = 0; i < m_quads.size(); i++)
+		for(auto& quad : m_quads)
 		{
-			m_quads[i].updateVertices(windows[m_quads[i].getWindowID()].getOrthoMatrix());
+			for(Window* window : windows)
+			{
+				if(window->getWindowID() == quad.getWindowID())
+				{
+					quad.updateVertices(window->getOrthoMatrix());
+				}
+			}
 		}
 
 		static uint32_t verticesSize = sizeof(Vertex) * 4;
@@ -112,6 +117,7 @@ namespace Charra
 
  
 		std::vector<VkSemaphore> renderWaitSemaphores;
+		std::vector<VkSemaphore> renderFinishedSemaphores;
 		std::vector<VkPipelineStageFlags> waitStages;
 
 		// Transfer vertices if required
@@ -133,27 +139,22 @@ namespace Charra
 
 			CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getTransferQueue(), 1, &transferSubmitInfo, VK_NULL_HANDLE) != VK_SUCCESS, "Vulkan could not submit transfer command buffer to queue");
 		}
-		
-		for(auto& window : windows)
-		{
-			window.getSwapchain().prepareNextImage(&window.getSemaphore());
-		}
-
 		m_commandBuffers.resetCommandBuffer(m_commandBufferIndex);
 		m_commandBuffers.beginRecording(m_commandBufferIndex);
 
-		for(auto& window : windows)
+		for(Window* window : windows)
 		{
-			// I will record the main window now
-			m_commandBuffers.beginRenderpass(window.getRenderpass().getRenderpass(),
-													window.getSwapchain().getFramebuffer(), 
-													window.getMaterial().getPipeline().getPipeline(),
-													window.getSwapchain().getPixelExtent(),
+			window->getSwapchain().prepareNextImage(&window->getImageSemaphore());
+
+			m_commandBuffers.beginRenderpass(window->getRenderpass().getRenderpass(),
+													window->getSwapchain().getFramebuffer(), 
+													window->getMaterial().getPipeline().getPipeline(),
+													window->getSwapchain().getPixelExtent(),
 													m_commandBufferIndex);
 
 
 			VkRect2D scissor;
-			scissor.extent = window.getSwapchain().getPixelExtent();
+			scissor.extent = window->getSwapchain().getPixelExtent();
 			scissor.offset = {0,0};
 
 			VkViewport viewportCreateInfo{};
@@ -191,7 +192,9 @@ namespace Charra
 			vkCmdDrawIndexed(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), sizeof(uint32_t) * 6 * m_quads.size(), 1, 0, 0, 0);
 			
 			m_commandBuffers.endRenderpass(m_commandBufferIndex);
-			renderWaitSemaphores.push_back(window.getSemaphore().getSemaphore());
+			renderWaitSemaphores.push_back(window->getImageSemaphore().getSemaphore());
+			renderFinishedSemaphores.push_back(window->getRenderSemaphore().getSemaphore());
+			
 			waitStages.push_back(VK_PIPELINE_STAGE_COLOR_ATTACHMENT_OUTPUT_BIT);
 		}
 
@@ -208,9 +211,8 @@ namespace Charra
 		submitInfo.commandBufferCount = 1;
 		VkCommandBuffer commandBuffers[] = {m_commandBuffers.getCommandBuffer(m_commandBufferIndex)};
 		submitInfo.pCommandBuffers = commandBuffers;
-		submitInfo.signalSemaphoreCount = 1;
-		VkSemaphore signalSemaphores[] = {m_renderFinishedSemaphore.getSemaphore()};
-		submitInfo.pSignalSemaphores = signalSemaphores;
+		submitInfo.signalSemaphoreCount = renderFinishedSemaphores.size();
+		submitInfo.pSignalSemaphores = renderFinishedSemaphores.data();
 
 		CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
 
@@ -220,12 +222,12 @@ namespace Charra
 			presentInfo.sType = VK_STRUCTURE_TYPE_PRESENT_INFO_KHR;
 			presentInfo.pNext;
 			presentInfo.waitSemaphoreCount = 1;
-			VkSemaphore presentSemaphores[] = {m_renderFinishedSemaphore.getSemaphore()};
-			presentInfo.pWaitSemaphores = presentSemaphores;
+			VkSemaphore semaphore = window->getRenderSemaphore().getSemaphore();
+			presentInfo.pWaitSemaphores = &semaphore;
 			presentInfo.swapchainCount = 1; // TODO mulitple windows will need this
-			VkSwapchainKHR swapchains[1] = {window.getSwapchain().getSwapchain()};
+			VkSwapchainKHR swapchains[1] = {window->getSwapchain().getSwapchain()};
 			presentInfo.pSwapchains = swapchains;
-			const uint32_t imageIndices[1] = {window.getSwapchain().getImageIndex()};
+			const uint32_t imageIndices[1] = {window->getSwapchain().getImageIndex()};
 			presentInfo.pImageIndices = imageIndices; // TODO this will need to be more complex for multiple windows
 			presentInfo.pResults;
 
