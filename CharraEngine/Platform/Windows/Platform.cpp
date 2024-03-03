@@ -398,7 +398,7 @@ namespace Charra
 			return HTNOWHERE;
 		}
 
-		LRESULT WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
+		LRESULT CALLBACK WindowProc(HWND window, UINT message, WPARAM wParam, LPARAM lParam)
 		{
 			uint32_t mouseX;
 			uint32_t mouseY;

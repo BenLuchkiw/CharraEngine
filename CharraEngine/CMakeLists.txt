@@ -31,6 +31,8 @@ ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/DeviceAllocator.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/DeviceAllocator.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/HostAllocator.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/HostAllocator.cpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/BufferManager.hpp
+${CMAKE_CURRENT_LIST_DIR}/Vulkan/Allocator/BufferManager.cpp
 
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/CommandBuffers.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Vulkan/CommandBuffers.cpp

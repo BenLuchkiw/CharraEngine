@@ -8,7 +8,7 @@
 #include "Draw2D/Quad.hpp"
 #include "Math/MathTypes.hpp"
 #include "Renderer/Window.hpp"
-#include "Vulkan/Allocator/Allocator.hpp"
+#include "Vulkan/Allocator/BufferManager.hpp"
 #include "Vulkan/Device.hpp"
 #include "Vulkan/Instance.hpp"
 #include "Vulkan/Syncronization.hpp"
@@ -43,16 +43,18 @@ namespace Charra
 		Device m_device;
 		CommandBuffers m_commandBuffers;
 		uint32_t m_commandBufferIndex = 0;
-		Allocator m_allocator;
+		BufferManager m_bufferManager;
 
 		Semaphore m_transferFinishedSemaphore;
 		Fence m_renderFinishedFence;
 
-		// TODO get this out of this class
-		Buffer m_vertexStagingBuffer{};
-		Buffer m_vertexDeviceBuffer{};
-		Buffer m_indexStagingBuffer{};
-		Buffer m_indexDeviceBuffer{};
+
+		int m_vertexStagingBuffer = -1;
+		int m_vertexDeviceBuffer = -1;
+		int m_indexStagingBuffer = -1;
+		int m_indexDeviceBuffer = -1;
+
+
 		bool m_shouldTransfer = false;
 
 		std::vector<Quad> m_quads = {};

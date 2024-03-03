@@ -14,21 +14,23 @@ namespace Charra
 		  m_instance(),
 		  m_device(m_instance),
 		  m_commandBuffers(m_device, 2, CommandBufferType::GRAPHICS),
-		  m_allocator(m_device),
+		  m_bufferManager(m_device),
 		  m_transferFinishedSemaphore(m_device),
 		  m_renderFinishedFence(m_device)
 	{
-		
+		m_vertexStagingBuffer = m_bufferManager.createBuffer();
+		m_vertexDeviceBuffer = m_bufferManager.createBuffer();
+		m_indexStagingBuffer = m_bufferManager.createBuffer();
+		m_indexDeviceBuffer = m_bufferManager.createBuffer();
 	}
 
 	Renderer::~Renderer()
 	{
 		vkDeviceWaitIdle(m_device.getDevice());
-		m_allocator.deallocateBuffer(&m_vertexStagingBuffer);
-		m_allocator.deallocateBuffer(&m_vertexDeviceBuffer);
-
-		m_allocator.deallocateBuffer(&m_indexStagingBuffer);
-		m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
+		m_bufferManager.deallocateBuffer(m_vertexStagingBuffer);
+		m_bufferManager.deallocateBuffer(m_vertexDeviceBuffer);
+		m_bufferManager.deallocateBuffer(m_indexStagingBuffer);
+		m_bufferManager.deallocateBuffer(m_indexDeviceBuffer);
 	}
 
 	void Renderer::draw(std::vector<Window*>& windows)
@@ -40,23 +42,10 @@ namespace Charra
 
 
 		// Update quad list and set up transfers
-
-		if(m_vertexStagingBuffer.buffer != VK_NULL_HANDLE)
-		{
-			m_allocator.deallocateBuffer(&m_vertexStagingBuffer);
-		}
-		if(m_vertexDeviceBuffer.buffer != VK_NULL_HANDLE)
-		{
-			m_allocator.deallocateBuffer(&m_vertexDeviceBuffer);
-		}
-		if(m_indexStagingBuffer.buffer != VK_NULL_HANDLE)
-		{
-			m_allocator.deallocateBuffer(&m_indexStagingBuffer);
-		}
-		if(m_indexDeviceBuffer.buffer != VK_NULL_HANDLE)
-		{
-			m_allocator.deallocateBuffer(&m_indexDeviceBuffer);
-		}
+		m_bufferManager.deallocateBuffer(m_vertexStagingBuffer);
+		m_bufferManager.deallocateBuffer(m_vertexDeviceBuffer);
+		m_bufferManager.deallocateBuffer(m_indexStagingBuffer);
+		m_bufferManager.deallocateBuffer(m_indexDeviceBuffer);
 
 		if(m_quads.size() == 0 || windows.size() == 0)
 		{
@@ -70,6 +59,7 @@ namespace Charra
 				if(window->getWindowID() == quad.getWindowID())
 				{
 					quad.updateVertices(window->getOrthoMatrix());
+					break;
 				}
 			}
 		}
@@ -77,8 +67,8 @@ namespace Charra
 		static uint32_t verticesSize = sizeof(Vertex) * 4;
 		static uint32_t indicesSize = sizeof(uint32_t) * 6;
 
-		m_vertexStagingBuffer = m_allocator.allocateBuffer(verticesSize * m_quads.size(), BufferType::CPU);
-		m_indexStagingBuffer = m_allocator.allocateBuffer(indicesSize * m_quads.size(), BufferType::CPU);
+		m_bufferManager.allocateBuffer(m_vertexStagingBuffer, verticesSize * m_quads.size(), BufferType::CPU);
+		m_bufferManager.allocateBuffer(m_indexStagingBuffer, indicesSize * m_quads.size(), BufferType::CPU);
 
 		std::vector<Vertex> vertices;
 		std::vector<uint32_t> indices;
@@ -91,18 +81,18 @@ namespace Charra
 			indices.insert(indices.end(), indicesTemp.begin(), indicesTemp.end());
 		}
 
-		m_allocator.submitData(m_vertexStagingBuffer, vertices.data(), verticesSize * m_quads.size(), 0);
-		m_allocator.submitData(m_indexStagingBuffer, indices.data(), indicesSize * m_quads.size(), 0);
+		m_bufferManager.submitData(m_vertexStagingBuffer, vertices.data(), verticesSize * m_quads.size(), 0);
+		m_bufferManager.submitData(m_indexStagingBuffer, indices.data(), indicesSize * m_quads.size(), 0);
 
-		BufferTypeFlags flags = m_allocator.getBufferTypes();
+		BufferTypeFlags flags = m_bufferManager.getBufferTypes();
 		if(flags & BufferType::GPU)
 		{
 			m_shouldTransfer = true;
-			m_vertexDeviceBuffer = m_allocator.allocateBuffer(verticesSize * m_quads.size(), BufferType::GPU);
-			m_allocator.applyForTransfer(&m_vertexStagingBuffer, &m_vertexDeviceBuffer);
+			m_bufferManager.allocateBuffer(m_vertexDeviceBuffer, verticesSize * m_quads.size(), BufferType::GPU);
+			m_bufferManager.queueTransfer(m_vertexStagingBuffer, m_vertexDeviceBuffer);
 
-			m_indexDeviceBuffer = m_allocator.allocateBuffer(indicesSize * m_quads.size(), BufferType::GPU);
-			m_allocator.applyForTransfer(&m_indexStagingBuffer, &m_indexDeviceBuffer);
+			m_bufferManager.allocateBuffer(m_indexDeviceBuffer, indicesSize * m_quads.size(), BufferType::GPU);
+			m_bufferManager.queueTransfer(m_indexStagingBuffer, m_indexDeviceBuffer);
 		}
 		
 		// Check for transfers
@@ -132,7 +122,7 @@ namespace Charra
 			transferSubmitInfo.waitSemaphoreCount;
 			transferSubmitInfo.pWaitSemaphores;
 			transferSubmitInfo.commandBufferCount = 1;
-			VkCommandBuffer command[] = {m_allocator.getTransferBuffer()};
+			VkCommandBuffer command[] = {m_bufferManager.getTransferBuffer()};
 			transferSubmitInfo.pCommandBuffers = command;
 			transferSubmitInfo.signalSemaphoreCount = 1;
 			transferSubmitInfo.pSignalSemaphores = &renderWaitSemaphores.back();
@@ -168,21 +158,25 @@ namespace Charra
 			vkCmdSetViewport(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &viewportCreateInfo);
 			vkCmdSetScissor(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &scissor);
 
-			if(m_vertexDeviceBuffer.size != 0)
+			if(m_bufferManager.getBuffer(m_vertexDeviceBuffer)->size != 0)
 			{
-				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexDeviceBuffer.buffer,
-									&m_vertexDeviceBuffer.offset);
+				Buffer* buffer = m_bufferManager.getBuffer(m_vertexDeviceBuffer);
+				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &buffer->buffer,
+									   &buffer->offset);
 
+				buffer = m_bufferManager.getBuffer(m_indexDeviceBuffer);
 				vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex),
-									m_indexDeviceBuffer.buffer, m_indexDeviceBuffer.offset, VK_INDEX_TYPE_UINT32);
+									buffer->buffer, buffer->offset, VK_INDEX_TYPE_UINT32);
 			}
 			else 
 			{
-				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &m_vertexStagingBuffer.buffer,
-									&m_vertexStagingBuffer.offset);
+				Buffer* buffer = m_bufferManager.getBuffer(m_vertexStagingBuffer);
+				vkCmdBindVertexBuffers(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), 0, 1, &buffer->buffer,
+									&buffer->offset);
 
-				vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), m_indexStagingBuffer.buffer, 
-									m_indexStagingBuffer.offset, VK_INDEX_TYPE_UINT32);
+				buffer = m_bufferManager.getBuffer(m_indexStagingBuffer);
+				vkCmdBindIndexBuffer(m_commandBuffers.getCommandBuffer(m_commandBufferIndex), buffer->buffer, 
+									buffer->offset, VK_INDEX_TYPE_UINT32);
 			}
 
 			//vkCmdDraw(m_pImpl->commandBuffers.getCommandBuffer(m_pImpl->commandBufferIndex), static_cast<uint32_t>(m_pImpl->vertices.size()), 1, 0, 0);

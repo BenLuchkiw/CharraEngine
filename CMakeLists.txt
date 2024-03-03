@@ -18,7 +18,6 @@ ${WINDOWS_PLATFORM_SOURCES}
 # Change this to wherever main is.
 ${CMAKE_CURRENT_LIST_DIR}/Sandbox/Main.cpp)
 
-add_executable(CharraEngine ${ALL_SOURCES})
 
 # For finding possible errors in the sea of warnings
 #set(CMAKE_CXX_FLAGS  "${CMAKE_CXX_FLAGS} 
@@ -26,6 +25,8 @@ add_executable(CharraEngine ${ALL_SOURCES})
 #/wd4201
 #/wd4267
 #")
+
+add_executable(CharraEngine ${ALL_SOURCES})
 
 target_link_libraries(CharraEngine "${CMAKE_CURRENT_LIST_DIR}\\Libs\\vulkan\\Lib\\vulkan-1.lib")
 include_directories("Libs\\vulkan\\Include")

@@ -92,7 +92,8 @@ int main()
 		}
 		if(window2Closed || window1Closed)
 		{
-			obj2.m_colour.x += 0.00001;
+			obj1.m_colour.r -= 0.001;
+			obj2.m_colour.x += 0.001;
 		}
 
 		renderer->draw(windows);
