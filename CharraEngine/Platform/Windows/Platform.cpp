@@ -130,13 +130,30 @@ namespace Charra
 			
 			ShowWindow(window, SW_NORMAL);
 
+			// Search for empty window entries to recycle
+			for(int i = 0; i < g_platformData.windows.size(); i++)
+			{
+				if(g_platformData.windows[i] == NULL)
+				{
+					g_platformData.windows[i] = window;
+					g_platformData.windowIds[i] = g_platformData.currentIdGen++;
+					g_platformData.windowNames[i] = windowName.c_str();
+					g_platformData.windowDimensions[i] = size;
+					return g_platformData.windowIds[i];
+				}
+			}
+
+			// Create new entry
 			g_platformData.windows.push_back(window);
-			// This should be a unique ID
 			g_platformData.windowIds.push_back(g_platformData.currentIdGen++);
 			g_platformData.windowNames.push_back(windowName.c_str());
-			g_platformData.windowDimensions.push_back({0,0});
-
+			g_platformData.windowDimensions.push_back(size);
 			return g_platformData.windowIds.back();
+		}
+
+		void destroyWindow(uint32_t windowIndex)
+		{
+			DestroyWindow(g_platformData.windows[windowIndex]);
 		}
 
 		static void moveWindow(uint32_t windowIndex, iVec2 position, iVec2 size)

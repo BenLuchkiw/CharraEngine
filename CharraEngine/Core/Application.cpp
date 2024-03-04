@@ -18,11 +18,15 @@ namespace Charra
 		Platform::initPlatformWin32(appName.data(), eventHandlerRef);
 	}
 
+
+	// m_renderer is created with a pointer to an uninitialized WindowManager, this is fine
+	// because m_renderer does not use window manager on creation, only on main loop
 	Application::Application(const std::string& appName)
 	: m_eventHandler(),
 	  m_dummy(appName, &m_eventHandler),
-	  m_renderer(&m_eventHandler),
-	  m_appName(appName)
+	  m_renderer(&m_eventHandler, &m_windowManager),
+	  m_appName(appName),
+	  m_windowManager(&m_renderer)
 	{
 		Timer::initTimer();
 	}

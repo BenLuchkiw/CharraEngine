@@ -5,6 +5,7 @@
 #include "Core/Events.hpp"
 #include "Math/mathTypes.hpp"
 #include "Renderer/Renderer.hpp"
+#include "Renderer/Window.hpp"
 
 namespace Charra
 {
@@ -23,6 +24,7 @@ namespace Charra
 
 		Events* getEventHandler() { return &m_eventHandler; }
 		Renderer* getRendererRef() { return &m_renderer; }
+		WindowManager* getWindowManager() { return &m_windowManager; }
 
 		void run();
 
@@ -34,6 +36,7 @@ namespace Charra
 		Events m_eventHandler;
 		Dummy m_dummy;
 		Renderer m_renderer;
+		WindowManager m_windowManager;
 
 		std::string m_appName;
 

@@ -117,7 +117,7 @@ namespace Charra
 
 		auto oldSwapchain = m_swapchain;
 
-		vkCreateSwapchainKHR(m_deviceRef.getDevice(), &createInfo, NULL, &m_swapchain);
+		CHARRA_LOG_ERROR(vkCreateSwapchainKHR(m_deviceRef.getDevice(), &createInfo, NULL, &m_swapchain) != VK_SUCCESS, "Vulkan failed to create swapchain");
 
 		if(oldSwapchain != VK_NULL_HANDLE)
 		{	
