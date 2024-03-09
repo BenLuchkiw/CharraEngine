@@ -6,6 +6,7 @@
 
 #include "Material.hpp"
 #include "Math/MathTypes.hpp"
+#include "Math/RendererTypes.hpp"
 #include "Vulkan/Renderpass.hpp"
 #include "Vulkan/Swapchain.hpp"
 #include "Vulkan/Syncronization.hpp"
@@ -89,7 +90,7 @@ namespace Charra
 
 		// Windows are managed via integer ID
 		WindowID createWindow(iVec2 size, iVec2 position, const std::string& name);
-		void destroyWindow(WindowID ID);
+		int destroyWindow(WindowID ID);
 
 		// Returns canvas ID
 		Canvas* createCanvas();
@@ -98,6 +99,7 @@ namespace Charra
 		void assignCanvasToWindow(Canvas& canvas, WindowID windowID);
 		void disassociateCanvasFromWindow(Canvas& canvas, WindowID windowID);
 
+		Mat4X4 getOrthoMatrix(uint32_t windowID);
 
 		// TODO: Implement these
 		// void resizeWindow();

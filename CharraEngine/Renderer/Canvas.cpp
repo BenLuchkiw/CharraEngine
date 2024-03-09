@@ -10,17 +10,12 @@ namespace Charra
 	{
 	}
 
-	void Canvas::drawQuad(fVec3 position, fVec2 size, fVec4 colour)
+	void Canvas::drawQuad(std::array<Vertex, 4>& vertices)
 	{
-		Vertex v1 = {{position.x, position.y, position.z}, {colour.x, colour.y, colour.z, colour.w}};
-		Vertex v2 = {{position.x, position.y + size.y, position.z}, {colour.x, colour.y, colour.z, colour.w}};
-		Vertex v3 = {{position.x + size.x, position.y + size.y, position.z}, {colour.x, colour.y, colour.z, colour.w}};
-		Vertex v4 = {{position.x + size.x, position.y, position.z}, {colour.x, colour.y, colour.z, colour.w}};
-
-		m_vertices.push_back(v1);
-		m_vertices.push_back(v2);
-		m_vertices.push_back(v3);
-		m_vertices.push_back(v4);
+		m_vertices.push_back(vertices[0]);
+		m_vertices.push_back(vertices[1]);
+		m_vertices.push_back(vertices[2]);
+		m_vertices.push_back(vertices[3]);
 
 		uint32_t indexOffset = m_indices.size();
 		m_indices.push_back(indexOffset);
@@ -81,9 +76,6 @@ namespace Charra
 		}
 
 
-		// TODO only temporary
-		m_vertices.clear();
-		m_indices.clear();
 	}
 
 	void Canvas::bindBuffers(BufferManager& bufferManager, VkCommandBuffer commandBuffer)
@@ -106,5 +98,10 @@ namespace Charra
 		}
 
 		vkCmdDrawIndexed(commandBuffer, sizeof(uint32_t) * m_indices.size(), 1, 0, 0, 0);
+
+		
+		// TODO only temporary
+		m_vertices.clear();
+		m_indices.clear();
 	}
 }

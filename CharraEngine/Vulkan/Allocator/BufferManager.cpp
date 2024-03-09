@@ -1,5 +1,7 @@
 #include "BufferManager.hpp"
 
+#include "Core/Logging.hpp"
+
 namespace Charra
 {
 
@@ -11,6 +13,13 @@ namespace Charra
 
 	BufferManager::~BufferManager()
 	{
+		for(auto& b : m_buffers)
+		{
+			if(b.inUse)
+			{
+				m_allocator.deallocateBuffer(&b);
+			}
+		}
 	}
 
 	BufferID BufferManager::createBuffer()

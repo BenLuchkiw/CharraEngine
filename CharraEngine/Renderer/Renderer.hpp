@@ -39,9 +39,7 @@ namespace Charra
 
 		void transferBuffers(std::vector<VkSemaphore>* semaphore, std::vector<VkPipelineStageFlags>* waitStages);
 		void recordCommandBuffers(std::vector<VkSemaphore>* renderSemaphore, std::vector<VkSemaphore>* presentSemaphore, std::vector<VkPipelineStageFlags>* waitStages);
-		void submitCommandBuffers();
-		void presentImages();
-
+		void submitRenderCommandBuffers(std::vector<VkSemaphore>* renderWaitSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkPipelineStageFlags>* waitStages);
 
 	private: // Members
 		Events* m_eventHandlerRef;

@@ -4,6 +4,7 @@
 #include "Renderer/Renderer.hpp"
 #include "Platform/Platform.hpp"
 #include "Vulkan/Allocator/BufferManager.hpp"
+#include "Core/Logging.hpp"
 
 #include "Canvas.hpp"
 
@@ -121,12 +122,19 @@ namespace Charra
 		return windowID;
 	}
 
-	void WindowManager::destroyWindow(WindowID ID)
+	int WindowManager::destroyWindow(WindowID ID)
 	{
+		if(ID == -1)
+		{
+			return -1;
+		}
+		
 		// Destroy a window
 		Platform::destroyWindow(ID);
 		// Remove the window from the unordoer map
 		m_windows.erase(ID);
+
+		return -1;
 
 	}
 
@@ -156,6 +164,17 @@ namespace Charra
 	{
 		// Disassociate a canvas from a window
 		m_windows.at(windowID).disassociateCanvas(&m_canvases.at(canvas.getCanvasID()));
+	}
+
+	Mat4X4 WindowManager::getOrthoMatrix(WindowID windowID)
+	{
+		// Get the orthographic matrix of a window
+		if(m_windows.find(windowID) == m_windows.end())
+		{
+			CHARRA_LOG_ERROR(1, "Charra::WindowManager::getOrthoMatrix: WindowID not found in map. Returning unitialized matrix.");
+			return Mat4X4();
+		}
+		return m_windows.find(windowID)->second.getOrthoMatrix();
 	}
 
 	void WindowManager::transferBuffers(BufferManager* bufferManager)
@@ -195,7 +214,8 @@ namespace Charra
 			presentInfo.pSwapchains = swapchains;
 			const uint32_t imageIndices[1] = {window.second.getSwapchain().getImageIndex()};
 			presentInfo.pImageIndices = imageIndices;
-			vkQueuePresentKHR(m_rendererRef->getDevice().getGraphicsQueue(), &presentInfo);
+
+			CHARRA_LOG_INFO(vkQueuePresentKHR(m_rendererRef->getDevice().getGraphicsQueue(), &presentInfo) != VK_SUCCESS, "Vulkan could not present image");
 		}
 	}
 

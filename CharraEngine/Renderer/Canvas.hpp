@@ -1,8 +1,11 @@
 #pragma once
 
 #include <vector>
+#include <array>
+
 #include "Math/RendererTypes.hpp"
 #include "Vulkan/Allocator/BufferManager.hpp"
+#include "Math/RendererTypes.hpp"
 
 namespace Charra
 {
@@ -36,7 +39,7 @@ namespace Charra
 		Canvas();
 		~Canvas();
 
-		void drawQuad(fVec3 position, fVec2 size, fVec4 colour);
+		void drawQuad(std::array<Vertex, 4>& vertices);
 		CanvasID getCanvasID() { return m_ID; }
 
 	protected: // Methods

@@ -42,9 +42,9 @@ namespace Charra
 
 		recordCommandBuffers(&renderWaitSemaphores, &renderFinishedSemaphores, &waitStages);
 
-		submitCommandBuffers();
+		submitRenderCommandBuffers(&renderWaitSemaphores, &renderFinishedSemaphores, &waitStages);
 
-		presentImages();
+		m_windowManagerRef->presentImages();
 
 		// This flips the index between 0 and 1 without branching
 		m_commandBufferIndex = 1 - m_commandBufferIndex;
@@ -57,6 +57,7 @@ namespace Charra
 		m_windowManagerRef->transferBuffers(&m_bufferManager);
 
 		VkCommandBuffer buffer = m_bufferManager.getTransferBuffer();
+		CHARRA_LOG_ERROR(buffer == VK_NULL_HANDLE, "Vulkan could not get transfer command buffer");
 
 		if(buffer != VK_NULL_HANDLE)
 		{
@@ -65,9 +66,9 @@ namespace Charra
 
 			VkSubmitInfo transferSubmitInfo{};
 			transferSubmitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
-			transferSubmitInfo.pNext;
-			transferSubmitInfo.waitSemaphoreCount;
-			transferSubmitInfo.pWaitSemaphores;
+			transferSubmitInfo.pNext = nullptr;
+			transferSubmitInfo.waitSemaphoreCount = 0;
+			transferSubmitInfo.pWaitSemaphores = nullptr;
 			transferSubmitInfo.commandBufferCount = 1;
 			transferSubmitInfo.pCommandBuffers = &buffer;
 			transferSubmitInfo.signalSemaphoreCount = 1;
@@ -92,27 +93,20 @@ namespace Charra
 		m_commandBuffers.endRecording(m_commandBufferIndex);
 	}
 
-	void Renderer::submitCommandBuffers()
+	void Renderer::submitRenderCommandBuffers(std::vector<VkSemaphore>* renderWaitSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkPipelineStageFlags>* waitStages)
 	{
-		// Submit command buffers
 		VkSubmitInfo submitInfo{};
+		submitInfo.waitSemaphoreCount = renderWaitSemaphores->size();
+		submitInfo.pWaitSemaphores = renderWaitSemaphores->data();
 		submitInfo.sType = VK_STRUCTURE_TYPE_SUBMIT_INFO;
 		submitInfo.pNext;
-		submitInfo.waitSemaphoreCount;
-		submitInfo.pWaitSemaphores;
-		submitInfo.pWaitDstStageMask;
+		submitInfo.pWaitDstStageMask = waitStages->data();
 		submitInfo.commandBufferCount = 1;
 		VkCommandBuffer commandBuffers[] = {m_commandBuffers.getCommandBuffer(m_commandBufferIndex)};
 		submitInfo.pCommandBuffers = commandBuffers;
-		submitInfo.signalSemaphoreCount;
-		submitInfo.pSignalSemaphores;
+		submitInfo.signalSemaphoreCount = renderFinishedSemaphores->size();
+		submitInfo.pSignalSemaphores = renderFinishedSemaphores->data();
 
 		CHARRA_LOG_ERROR(vkQueueSubmit(m_device.getGraphicsQueue(), 1, &submitInfo, m_renderFinishedFence.getFence()) != VK_SUCCESS, "Vulkan could not submit command buffer to queue");
-	}
-
-	void Renderer::presentImages()
-	{
-		// Present images
-		m_windowManagerRef->presentImages();
 	}
 }
