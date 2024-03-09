@@ -212,6 +212,11 @@ namespace Charra
 
 	VkCommandBuffer Allocator::getTransferBuffer()
 	{
+		if(m_transfers.size() == 0)
+		{
+			return VK_NULL_HANDLE;
+		}
+		
 		m_commandBuffers.beginRecording(0);
 
 		for(int i = 0; i < m_transfers.size(); i++)

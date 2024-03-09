@@ -17,6 +17,8 @@ ${CMAKE_CURRENT_LIST_DIR}/Draw2D/Quad.cpp
 #${CMAKE_CURRENT_LIST_DIR}/GUI/Square.hpp
 #${CMAKE_CURRENT_LIST_DIR}/GUI/Square.cpp
 
+${CMAKE_CURRENT_LIST_DIR}/Renderer/Canvas.cpp
+${CMAKE_CURRENT_LIST_DIR}/Renderer/Canvas.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.hpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Material.cpp
 ${CMAKE_CURRENT_LIST_DIR}/Renderer/Renderer.hpp

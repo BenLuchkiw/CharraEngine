@@ -8,7 +8,9 @@
 
 namespace Charra
 {
-    
+
+    typedef uint32_t BufferID;
+
     class Device;
     class BufferManager
     {
@@ -17,31 +19,31 @@ namespace Charra
         ~BufferManager();
 
         // Creates a zeroed out buffer, needs to be allocated before use, returns buffer id
-        int createBuffer();
+        BufferID createBuffer();
         // Deletes buffer
-        void deleteBuffer(int buffer);
+        void deleteBuffer(BufferID buffer);
 
 
         // Allocates data and initializes the buffer
         // Returns non-zero on error
-        int allocateBuffer(int buffer, uint64_t size, Charra::BufferTypeFlags type);
+        void allocateBuffer(BufferID buffer, uint64_t size, Charra::BufferTypeFlags type);
 
         // Deallocates the buffer
-        void deallocateBuffer(int buffer);
+        void deallocateBuffer(BufferID buffer);
 
         // Submits data to the buffer
-        void submitData(int buffer, void* data, size_t bytes, size_t offset);
+        void submitData(BufferID buffer, void* data, size_t bytes, size_t offset);
 
         // Queues the buffer for transfer
-        void queueTransfer(int src, int dst);
+        void queueTransfer(BufferID src, BufferID dst);
 
         // Passes buffer types down the line from allocator
         inline Charra::BufferTypeFlags getBufferTypes() { return m_allocator.getBufferTypes(); }
         // Returns the transfer buffer from the allocator
-        VkCommandBuffer getTransferBuffer() { return m_allocator.getTransferBuffer(); }
+        inline VkCommandBuffer getTransferBuffer() { return m_allocator.getTransferBuffer(); }
 
         // Passes pointer to buffer  
-        Charra::Buffer* getBuffer(int buffer) { return &m_buffers[buffer]; }
+        Charra::Buffer* getBuffer(BufferID buffer) { return &m_buffers[buffer]; }
     private:
 
         Charra::Allocator m_allocator;

@@ -19,25 +19,32 @@ namespace Charra
 	class Renderer
 	{
 	public: 
-		Renderer(Events* eventHandler);
+		Renderer(Events* eventHandler, WindowManager* windowManagerRef);
 		~Renderer();
 
 		// All render commands will be tied to a window id
-		void draw(std::vector<Window*>& windows);
-
-		void drawQuad(fVec3 pos, fVec2 size, fVec4 colour, uint32_t windowID);
+		void draw();
 
 	protected:
 		friend class Charra::Window;
+		friend class Charra::WindowManager;
+
 		Device& getDevice() { return m_device; }
 		Instance& getInstance() { return m_instance; }
 		Events* getEventHandler() { return m_eventHandlerRef; }
+		CommandBuffers& getCommandBuffers() { return m_commandBuffers; }
+		BufferManager& getBufferManager() { return m_bufferManager; }
 
 	private: // Methods
 
+		void transferBuffers(std::vector<VkSemaphore>* semaphore, std::vector<VkPipelineStageFlags>* waitStages);
+		void recordCommandBuffers(std::vector<VkSemaphore>* renderSemaphore, std::vector<VkSemaphore>* presentSemaphore, std::vector<VkPipelineStageFlags>* waitStages);
+		void submitRenderCommandBuffers(std::vector<VkSemaphore>* renderWaitSemaphores, std::vector<VkSemaphore>* renderFinishedSemaphores, std::vector<VkPipelineStageFlags>* waitStages);
+
 	private: // Members
 		Events* m_eventHandlerRef;
-		
+		WindowManager* m_windowManagerRef;
+
 		// Vulkan backend
 		Instance m_instance;
 		Device m_device;
@@ -47,16 +54,5 @@ namespace Charra
 
 		Semaphore m_transferFinishedSemaphore;
 		Fence m_renderFinishedFence;
-
-
-		int m_vertexStagingBuffer = -1;
-		int m_vertexDeviceBuffer = -1;
-		int m_indexStagingBuffer = -1;
-		int m_indexDeviceBuffer = -1;
-
-
-		bool m_shouldTransfer = false;
-
-		std::vector<Quad> m_quads = {};
 	};
 }
