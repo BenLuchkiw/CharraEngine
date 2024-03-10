@@ -93,6 +93,7 @@ namespace Charra
 
 	void Swapchain::createSwapchain()
 	{
+		vkGetPhysicalDeviceSurfaceCapabilitiesKHR(m_deviceRef.getPhysicalDevice(), m_surface, &m_surfaceCapabilites);
 
 		// Create the swapchain
 		VkSwapchainCreateInfoKHR createInfo{};
